@@ -30,6 +30,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Performance optimizations
+  reactStrictMode: true,
+  swcMinify: true,
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,
+  },
+  experimental: {
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+  },
+  // Disable Turbopack for more stable performance
+  devIndicators: {
+    buildActivity: false,
+  },
 };
 
 export default nextConfig;

@@ -4,6 +4,10 @@ import { Bot, ShieldCheck, FileUp, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 
+// Add performance optimizations
+export const dynamic = 'force-dynamic';
+// export const revalidate = 0; // Removed due to error
+
 const features = [
   {
     icon: Bot,
@@ -47,11 +51,12 @@ export default function DashboardPage() {
             </div>
             <div className="relative h-64 md:h-full">
                 <Image
-                    src="https://picsum.photos/seed/meditestai/1200/800"
+                    src="/louis-reed-pwcKF7L4-no-unsplash.jpg"
                     alt="AI in Healthcare"
                     fill
                     className="object-cover"
-                    data-ai-hint="abstract technology"
+                    data-ai-hint="healthcare technology"
+                    priority={true}
                 />
             </div>
         </div>

@@ -47,14 +47,24 @@ const generateTestCasesPrompt = ai.definePrompt({
   name: 'generateTestCasesPrompt',
   input: {schema: GenerateTestCasesFromRequirementsInputSchema},
   output: {schema: GenerateTestCasesFromRequirementsOutputSchema},
-  prompt: `You are an expert QA engineer specializing in generating test cases for healthcare software.
+  prompt: `Create 3 healthcare software test cases from this requirement:
 
-You will receive a product requirement document (PRD) and generate detailed test cases.
-The test cases should include Case ID, title, description, test steps, expected results, and priority.
-Also, generate a compliance report indicating the compliance of the generated test cases with healthcare standards such as FDA, ISO 13485, and GDPR.
+Format:
+### Case ID: TC-001
+**Title:** [Brief title]
+**Description:** [What's tested]
+**Test Steps:**
+1. [Step 1]
+2. [Step 2]
+**Expected Results:** [Outcome]
+**Priority:** [High/Medium/Low]
 
-Product Requirement Document:
-{{{productRequirementDocument}}}`,
+---
+
+Requirements:
+{{{productRequirementDocument}}}
+
+Compliance: Brief healthcare standards note.`,
 });
 
 const generateTestCasesFromRequirementsFlow = ai.defineFlow(

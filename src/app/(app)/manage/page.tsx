@@ -5,10 +5,19 @@ import { useTestCases } from "@/contexts/TestCasesContext";
 import { TestCaseCard } from "@/components/TestCaseCard";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Bot, FileWarning, Info } from "lucide-react";
+import { Bot, FileWarning, Info, Copy, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { testCaseToMarkdown } from "@/lib/parsers";
+import { useState } from "react";
+
+// Performance optimizations
+export const dynamic = 'force-dynamic';
+// export const revalidate = 0; // Removed due to error
 
 export default function ManagePage() {
   const { testCases, complianceReport } = useTestCases();
+  const { toast } = useToast();
+  const [isCopying, setIsCopying] = useState(false);
 
   if (testCases.length === 0) {
     return (
@@ -28,13 +37,50 @@ export default function ManagePage() {
     );
   }
 
+  const copyAllTestCases = async () => {
+    setIsCopying(true);
+    try {
+      const testCasesMarkdown = testCases.map(testCaseToMarkdown).join('\n---\n');
+      await navigator.clipboard.writeText(testCasesMarkdown);
+      toast({
+        title: "Copied to clipboard",
+        description: `All ${testCases.length} test cases have been copied to your clipboard.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Copy failed",
+        description: "Failed to copy test cases to clipboard.",
+      });
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      <div className="flex flex-wrap justify-between items-center gap-4">
+        <h1 className="text-3xl font-bold">Generated Test Cases</h1>
+        <Button onClick={copyAllTestCases} variant="outline" disabled={isCopying}>
+          {isCopying ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Copying...
+            </>
+          ) : (
+            <>
+              <Copy className="mr-2 h-4 w-4" />
+              Copy All Test Cases
+            </>
+          )}
+        </Button>
+      </div>
+
       {complianceReport && (
         <Alert>
           <Info className="h-4 w-4" />
           <AlertTitle>Compliance Summary</AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="line-clamp-3">
             {complianceReport}
           </AlertDescription>
         </Alert>

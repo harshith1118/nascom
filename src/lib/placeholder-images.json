@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "dashboard-hero",
-      "description": "Abstract AI and healthcare graphic",
-      "imageUrl": "https://picsum.photos/seed/meditestai/1200/800",
-      "imageHint": "abstract technology"
+      "description": "Healthcare technology and AI",
+      "imageUrl": "/louis-reed-pwcKF7L4-no-unsplash.jpg",
+      "imageHint": "healthcare technology"
     }
   ]
 }

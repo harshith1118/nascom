@@ -1,30 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import * as z from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-
-import { type TestCase } from "@/lib/types"
-import { testCaseToMarkdown, parseTestCasesMarkdown } from "@/lib/parsers"
 import { useTestCases } from "@/contexts/TestCasesContext"
-import { modifyTestCase as modifyTestCaseAction } from "@/app/(app)/manage/actions"
-
+import { testCaseToMarkdown } from "@/lib/parsers"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { Bot, Loader2, Send, Share2, FileDown } from "lucide-react"
-
-const modifyFormSchema = z.object({
-  prompt: z.string().min(5, {
-    message: "Prompt must be at least 5 characters.",
-  }),
-})
+import { Bot, Copy, Share2, FileDown, AlertCircle } from "lucide-react"
+import { type TestCase } from "@/lib/types"
 
 type TestCaseCardProps = {
   testCase: TestCase
@@ -34,49 +19,37 @@ type TestCaseCardProps = {
 export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
   const { toast } = useToast()
   const { updateTestCase } = useTestCases()
-  const [isModifyDialogOpen, setModifyDialogOpen] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const form = useForm<z.infer<typeof modifyFormSchema>>({
-    resolver: zodResolver(modifyFormSchema),
-    defaultValues: { prompt: "" },
-  })
 
   const handleExport = (tool: string) => {
     toast({
-      title: `Exporting to ${tool}`,
-      description: `Your test case "${testCase.title}" is being prepared for export. (This is a demo feature)`,
+      title: `Export to ${tool} - Temporarily Suspended`,
+      description: `Export functionality to ${tool} is temporarily suspended for demo purposes. This feature will be available in the full version.`,
     })
   }
 
-  async function onModifySubmit(values: z.infer<typeof modifyFormSchema>) {
-    setIsSubmitting(true)
+  const copyTestCase = async () => {
     try {
-        const originalMarkdown = testCaseToMarkdown(testCase);
-        const result = await modifyTestCaseAction({ testCase: originalMarkdown, prompt: values.prompt });
-        
-        const parsedResult = parseTestCasesMarkdown(result);
-        if (parsedResult.length > 0) {
-            updateTestCase(index, parsedResult[0]);
-            toast({
-                title: "Test Case Updated",
-                description: "The AI has successfully modified the test case.",
-            });
-            setModifyDialogOpen(false);
-            form.reset();
-        } else {
-            throw new Error("AI returned an invalid format.");
-        }
+      const testCaseMarkdown = testCaseToMarkdown(testCase);
+      await navigator.clipboard.writeText(testCaseMarkdown);
+      toast({
+        title: "Copied to clipboard",
+        description: `Test case "${testCase.title}" has been copied to your clipboard.`,
+      });
     } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Modification Failed",
-            description: error instanceof Error ? error.message : "Could not update the test case.",
-        });
-    } finally {
-        setIsSubmitting(false);
+      toast({
+        variant: "destructive",
+        title: "Copy failed",
+        description: "Failed to copy test case to clipboard.",
+      });
     }
-  }
+  };
+
+  const handleModifyWithAI = () => {
+    toast({
+      title: "Modify with AI - Demo Limitation",
+      description: "AI modification functionality is temporarily suspended for demo purposes. This feature will be available in the full version.",
+    });
+  };
 
   const priorityVariant = (priority: string): "default" | "secondary" | "destructive" => {
     switch (priority?.toLowerCase()) {
@@ -126,7 +99,11 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
           </div>
         </CardContent>
         <CardFooter className="flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => setModifyDialogOpen(true)}>
+          <Button variant="outline" size="sm" onClick={copyTestCase}>
+            <Copy className="mr-2 h-4 w-4" />
+            Copy
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleModifyWithAI}>
             <Bot className="mr-2 h-4 w-4" />
             Modify with AI
           </Button>
@@ -145,48 +122,7 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
         </CardFooter>
       </Card>
 
-      <Dialog open={isModifyDialogOpen} onOpenChange={setModifyDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Modify Test Case with AI</DialogTitle>
-            <DialogDescription>
-              Use natural language to ask the AI to modify this test case. For example, "add a step to verify the error message".
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onModifySubmit)} className="space-y-4 pt-4">
-                <FormField
-                control={form.control}
-                name="prompt"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Modification Prompt</FormLabel>
-                    <FormControl>
-                        <Input placeholder="Your instructions for the AI..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-                <DialogFooter>
-                    <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                        <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Updating...
-                        </>
-                    ) : (
-                        <>
-                        <Send className="mr-2 h-4 w-4" />
-                        Submit
-                        </>
-                    )}
-                    </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      {/* Dialog removed for demo purposes */}
     </>
   )
 }

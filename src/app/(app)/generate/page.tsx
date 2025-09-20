@@ -12,8 +12,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Bot, Loader2, UploadCloud } from 'lucide-react';
+import { Bot, Loader2, UploadCloud, Clipboard, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+// Performance optimizations
+export const dynamic = 'force-dynamic';
+// export const revalidate = 0; // Removed due to error
 
 const formSchema = z.object({
   requirements: z.string().min(50, {
@@ -24,6 +30,7 @@ const formSchema = z.object({
 export default function GeneratePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [showTextArea, setShowTextArea] = useState(false);
   const router = useRouter();
   const { setTestCases, setComplianceReport } = useTestCases();
   const { toast } = useToast();
@@ -57,9 +64,45 @@ export default function GeneratePage() {
     }
   };
 
+  const handlePasteRequirements = () => {
+    setShowTextArea(true);
+    // Focus the textarea after it renders
+    setTimeout(() => {
+      const textarea = document.getElementById('requirements-textarea');
+      if (textarea) {
+        textarea.focus();
+      }
+    }, 100);
+  };
+
+  const copyToClipboard = async () => {
+    const requirements = form.getValues('requirements');
+    if (requirements) {
+      try {
+        await navigator.clipboard.writeText(requirements);
+        toast({
+          title: 'Copied to clipboard',
+          description: 'Requirements have been copied to your clipboard.',
+        });
+      } catch (err) {
+        toast({
+          variant: 'destructive',
+          title: 'Copy failed',
+          description: 'Failed to copy requirements to clipboard.',
+        });
+      }
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
+      // Show immediate feedback
+      toast({
+        title: 'Generating Test Cases',
+        description: 'AI is analyzing your requirements. This may take 10-30 seconds...',
+      });
+      
       const result = await generateTests({ productRequirementDocument: values.requirements });
       
       if (!result.testCases) {
@@ -98,6 +141,33 @@ export default function GeneratePage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Performance Note</AlertTitle>
+          <AlertDescription>
+            AI processing may take 10-30 seconds. Please be patient after clicking "Generate Test Cases".
+          </AlertDescription>
+        </Alert>
+        
+        <div className="flex flex-wrap gap-2 mb-4">
+          <Button 
+            variant={showTextArea ? "outline" : "default"} 
+            onClick={() => setShowTextArea(false)}
+            disabled={isLoading}
+          >
+            <UploadCloud className="mr-2 h-4 w-4" />
+            Upload File
+          </Button>
+          <Button 
+            variant={showTextArea ? "default" : "outline"} 
+            onClick={handlePasteRequirements}
+            disabled={isLoading}
+          >
+            <Clipboard className="mr-2 h-4 w-4" />
+            Paste Requirements
+          </Button>
+        </div>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -107,34 +177,56 @@ export default function GeneratePage() {
                 <FormItem>
                   <FormLabel>Software Requirements Document</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input
-                        id="file-upload"
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.md,.txt"
-                        onChange={handleFileChange}
-                        disabled={isLoading}
-                      />
-                      <label
-                        htmlFor="file-upload"
-                        className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
-                      >
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                          <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
-                          {fileName ? (
-                             <p className="font-semibold text-primary">{fileName}</p>
-                          ) : (
-                            <>
+                    {!showTextArea ? (
+                      <div className="relative">
+                        <Input
+                          id="file-upload"
+                          type="file"
+                          className="hidden"
+                          accept=".pdf,.md,.txt"
+                          onChange={handleFileChange}
+                          disabled={isLoading}
+                        />
+                        <label
+                          htmlFor="file-upload"
+                          className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
+                        >
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
+                            {fileName ? (
+                              <p className="font-semibold text-primary">{fileName}</p>
+                            ) : (
+                              <>
                                 <p className="mb-2 text-sm text-muted-foreground">
-                                    <span className="font-semibold">Click to upload</span> or drag and drop
+                                  <span className="font-semibold">Click to upload</span> or drag and drop
                                 </p>
                                 <p className="text-xs text-muted-foreground">PDF, MD, or TXT files</p>
-                            </>
-                          )}
-                        </div>
-                      </label>
-                    </div>
+                              </>
+                            )}
+                          </div>
+                        </label>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Textarea
+                          id="requirements-textarea"
+                          placeholder="Paste your requirements here..."
+                          className="min-h-[300px] resize-y"
+                          {...form.register('requirements')}
+                          disabled={isLoading}
+                        />
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={copyToClipboard}
+                          disabled={!form.getValues('requirements')}
+                        >
+                          <Clipboard className="mr-2 h-4 w-4" />
+                          Copy to Clipboard
+                        </Button>
+                      </div>
+                    )}
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -144,12 +236,12 @@ export default function GeneratePage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Generating...
+                  Generating... (May take 10-30 seconds)
                 </>
               ) : (
                 <>
                   <Bot className="mr-2 h-5 w-5" />
-                  Generate with AI
+                  Generate Test Cases
                 </>
               )}
             </Button>

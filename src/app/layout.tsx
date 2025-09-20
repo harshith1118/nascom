@@ -6,6 +6,9 @@ import { AppProviders } from '@/components/providers';
 export const metadata: Metadata = {
   title: 'MediTestAI',
   description: 'Automating Test Case Generation with AI for Healthcare',
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
