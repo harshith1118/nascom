@@ -5,7 +5,11 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
     return [];
   }
 
-  const testCaseBlocks = markdown.split(/\n---\n/).filter(block => block.trim() !== '');
+  // Handle case where markdown might include the compliance note
+  const complianceIndex = markdown.indexOf('Compliance Note:');
+  const testCasesContent = complianceIndex !== -1 ? markdown.substring(0, complianceIndex) : markdown;
+
+  const testCaseBlocks = testCasesContent.split(/\n---\n/).filter(block => block.trim() !== '');
 
   return testCaseBlocks.map((block, index) => {
     const caseIdMatch = block.match(/### Case ID:\s*(.*)/);

@@ -105,13 +105,28 @@ export default function GeneratePage() {
       
       const result = await generateTests({ productRequirementDocument: values.requirements });
       
-      if (!result.testCases) {
-          throw new Error("The AI failed to generate test cases. Please try again or refine your requirements.");
+      if (!result) {
+        throw new Error("The AI service returned an empty response. Please try again.");
+      }
+      
+      if (!result.testCases || result.testCases.trim() === "") {
+        throw new Error("The AI failed to generate test cases. Please try again or refine your requirements to be more specific.");
+      }
+      
+      // Check for error messages in the response
+      if (result.testCases.includes("Error:") || result.testCases.includes("Could not parse")) {
+        throw new Error("The AI encountered an error while generating test cases. Please try again with different requirements.");
       }
       
       const parsedTestCases = parseTestCasesMarkdown(result.testCases);
+      
+      // Validate that we got test cases
+      if (parsedTestCases.length === 0) {
+        throw new Error("The AI response could not be parsed into test cases. Please try again or check your requirements format.");
+      }
+      
       setTestCases(parsedTestCases);
-      setComplianceReport(result.complianceReport);
+      setComplianceReport(result.complianceReport || "No compliance information provided.");
 
       toast({
         title: 'Generation Complete',
@@ -124,7 +139,7 @@ export default function GeneratePage() {
       toast({
         variant: 'destructive',
         title: 'Generation Failed',
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        description: error instanceof Error ? error.message : 'An unknown error occurred. Please try again.',
       });
     } finally {
       setIsLoading(false);

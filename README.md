@@ -6,6 +6,14 @@ This is a Next.js application that automates test case generation for healthcare
 
 MediTestAI is an AI-powered system that automatically converts healthcare software requirements into compliant, traceable test cases integrated with enterprise toolchains.
 
+## Recent Improvements
+
+We've recently made significant improvements to the test case generation reliability:
+- Enhanced AI prompts for more consistent output
+- Improved error handling and user feedback
+- Better parsing of AI responses
+- More robust validation of generated test cases
+
 ## Quick Start
 
 1. Install dependencies:

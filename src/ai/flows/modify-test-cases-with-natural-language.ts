@@ -32,14 +32,22 @@ const modifyTestCasesWithNaturalLanguagePrompt = ai.definePrompt({
   name: 'modifyTestCasesWithNaturalLanguagePrompt',
   input: {schema: ModifyTestCasesWithNaturalLanguageInputSchema},
   output: {schema: ModifyTestCasesWithNaturalLanguageOutputSchema},
-  prompt: `You are a test case modification expert. You will receive a test case and a prompt.
-Modify the test case according to the prompt.
+  prompt: `You are a test case modification expert specializing in healthcare software testing. Your task is to modify the provided test case according to the user's prompt.
 
-Test Case:
+Instructions:
+1. Carefully read the test case and the modification prompt
+2. Make the requested changes to the test case
+3. Ensure the modified test case maintains proper formatting
+4. Return ONLY the modified test case in the same format as the original
+
+Original Test Case:
 {{testCase}}
 
-Prompt:
-{{prompt}}`,
+Modification Request:
+{{prompt}}
+
+Modified Test Case:
+`,
 });
 
 const modifyTestCasesWithNaturalLanguageFlow = ai.defineFlow(

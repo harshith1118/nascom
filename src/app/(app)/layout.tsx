@@ -41,17 +41,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader>
-          <Logo />
+        <SidebarHeader className="p-6 pb-4 animate-in fade-in slide-in-from-left-4 duration-500">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent/10">
+            <Logo />
+          </div>
         </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
+        <SidebarContent className="px-4 py-2">
+          <SidebarMenu className="gap-2">
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
                   isActive={pathname === item.href}
                   tooltip={{ children: item.label }}
+                  size="lg"
                 >
                   <Link href={item.href}>
                     <item.icon />
@@ -62,14 +65,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             ))}
           </SidebarMenu>
         </SidebarContent>
-        <SidebarFooter>
+        <div className="px-4 py-2">
+          <div className="h-px bg-sidebar-border w-full"></div>
+        </div>
+        <SidebarFooter className="p-6 animate-in fade-in slide-in-from-left-4 duration-500 delay-100">
            <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="justify-start w-full p-2 h-auto">
+                <Button variant="ghost" className="justify-start w-full p-3 h-auto rounded-xl transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground shadow-sm hover:shadow-md">
                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-10 w-10 ring-2 ring-primary/10">
                         <AvatarImage src="https://picsum.photos/seed/user/40/40" />
-                        <AvatarFallback>QA</AvatarFallback>
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">QA</AvatarFallback>
                       </Avatar>
                       <div className="text-left hidden group-data-[state=expanded]:block">
                         <p className="text-sm font-medium">QA Team</p>
@@ -102,15 +108,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
-          <SidebarTrigger className="md:hidden"/>
+        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6 md:px-8 shadow-sm">
+          <SidebarTrigger className="md:hidden rounded-lg p-2 transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"/>
           <div className="flex-1">
             <h1 className="text-lg font-semibold md:text-xl">
               {navItems.find(item => item.href === pathname)?.label || "MediTestAI"}
             </h1>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-6 md:p-8 bg-gradient-to-br from-background to-muted/20 min-h-screen animate-in fade-in duration-500">
+          <div className="max-w-7xl mx-auto space-y-6">
+            {children}
+          </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )
