@@ -42,14 +42,14 @@ export default function CompliancePage() {
     try {
       const result = await checkCompliance({
         testCases: values.testCases,
-        standards: values.standards,
+        standards: values.standards.split(',').map(s => s.trim()),
       });
 
-      if (!result.complianceReport) {
+      if (!result.report) {
         throw new Error("The AI failed to generate a compliance report. Please try again.");
       }
 
-      setReport(result.complianceReport);
+      setReport(result.report);
       toast({
         title: 'Compliance Check Complete',
         description: 'The compliance report has been generated below.',

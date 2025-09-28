@@ -1,63 +1,100 @@
-// The AI flow to modify generated test cases using natural language prompts.
-
 'use server';
-
 /**
- * @fileOverview This file defines a Genkit flow for modifying test cases using natural language prompts.
+ * @fileOverview This file contains functionality for modifying test cases based on natural language instructions.
  *
- * - modifyTestCasesWithNaturalLanguage - A function that takes a test case and a natural language prompt and returns a modified test case.
- * - ModifyTestCasesWithNaturalLanguageInput - The input type for the modifyTestCasesWithNaturalLanguage function.
- * - ModifyTestCasesWithNaturalLanguageOutput - The return type for the modifyTestCasesWithNaturalLanguage function.
+ * - modifyTestCasesWithNaturalLanguage - A function that modifies test cases using natural language.
+ * - ModifyTestCasesWithNaturalLanguageInput - The input type for the function.
+ * - ModifyTestCasesWithNaturalLanguageOutput - The return type for the function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const ModifyTestCasesWithNaturalLanguageInputSchema = z.object({
-  testCase: z.string().describe('The test case to modify.'),
-  prompt: z.string().describe('The natural language prompt to use for modifying the test case.'),
-});
-export type ModifyTestCasesWithNaturalLanguageInput = z.infer<typeof ModifyTestCasesWithNaturalLanguageInputSchema>;
+export interface ModifyTestCasesWithNaturalLanguageInput {
+  testCases: string;
+  modificationInstructions: string;
+}
 
-const ModifyTestCasesWithNaturalLanguageOutputSchema = z.string().describe('The modified test case.');
-export type ModifyTestCasesWithNaturalLanguageOutput = z.infer<typeof ModifyTestCasesWithNaturalLanguageOutputSchema>;
+export interface ModifyTestCasesWithNaturalLanguageOutput {
+  modifiedTestCases: string;
+}
 
 export async function modifyTestCasesWithNaturalLanguage(
   input: ModifyTestCasesWithNaturalLanguageInput
 ): Promise<ModifyTestCasesWithNaturalLanguageOutput> {
-  return modifyTestCasesWithNaturalLanguageFlow(input);
-}
+  const { testCases, modificationInstructions } = input;
 
-const modifyTestCasesWithNaturalLanguagePrompt = ai.definePrompt({
-  name: 'modifyTestCasesWithNaturalLanguagePrompt',
-  input: {schema: ModifyTestCasesWithNaturalLanguageInputSchema},
-  output: {schema: ModifyTestCasesWithNaturalLanguageOutputSchema},
-  prompt: `You are a test case modification expert specializing in healthcare software testing. Your task is to modify the provided test case according to the user's prompt.
+  try {
+    // Only initialize the API when the function is called
+    if (!process.env.GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY is not set in environment variables');
+    }
+    
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
-Instructions:
-1. Carefully read the test case and the modification prompt
-2. Make the requested changes to the test case
-3. Ensure the modified test case maintains proper formatting
-4. Return ONLY the modified test case in the same format as the original
+    const prompt = `You are an expert QA engineer. Modify the following test cases based on the provided natural language instructions.
 
-Original Test Case:
-{{testCase}}
+Current Test Cases:
+${testCases}
 
-Modification Request:
-{{prompt}}
+Modification Instructions:
+${modificationInstructions}
 
-Modified Test Case:
-`,
-});
+Modified Test Cases:`;
 
-const modifyTestCasesWithNaturalLanguageFlow = ai.defineFlow(
-  {
-    name: 'modifyTestCasesWithNaturalLanguageFlow',
-    inputSchema: ModifyTestCasesWithNaturalLanguageInputSchema,
-    outputSchema: ModifyTestCasesWithNaturalLanguageOutputSchema,
-  },
-  async input => {
-    const {output} = await modifyTestCasesWithNaturalLanguagePrompt(input);
-    return output!;
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    return {
+      modifiedTestCases: text
+    };
+  } catch (error) {
+    console.error('Error modifying test cases:', error);
+    
+    // Return mock modified test cases for development purposes when API fails
+    if (process.env.NODE_ENV === 'development') {
+      return {
+        modifiedTestCases: `### Case ID: TC-001
+**Title:** Updated User Registration Form Validation
+**Description:** Verify the registration form validates user inputs correctly with additional checks
+**Test Steps:**
+1. Navigate to the registration page
+2. Enter invalid email format in the email field
+3. Enter password with less than 8 characters
+4. Click the register button
+5. Check for additional validation messages
+**Expected Results:** Appropriate validation errors are displayed for all invalid fields
+**Priority:** High
+
+---
+
+### Case ID: TC-002
+**Title:** Updated User Login Functionality
+**Description:** Verify that authenticated users can successfully log in with enhanced security
+**Test Steps:**
+1. Navigate to the login page
+2. Enter valid credentials
+3. Click the login button
+4. Verify successful login with security token
+**Expected Results:** User is redirected to the dashboard with active session
+**Priority:** High
+
+---
+
+### Case ID: TC-003
+**Title:** Updated Password Reset Process
+**Description:** Verify the enhanced password reset functionality works properly
+**Test Steps:**
+1. Click the 'Forgot Password' link
+2. Enter registered email address
+3. Click the reset password button
+4. Check email for secure password reset link
+**Expected Results:** Secure password reset email with time-limited token is sent to the user
+**Priority:** Medium`
+      };
+    } else {
+      throw new Error('Failed to modify test cases. Please ensure your Google API key is properly configured and valid.');
+    }
   }
-);
+}

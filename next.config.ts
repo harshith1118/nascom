@@ -43,6 +43,8 @@ const nextConfig: NextConfig = {
   // devIndicators: {  // Removed due to deprecation
   //   buildActivity: false,
   // },
+  // Vercel specific configuration
+  output: 'standalone',
 };
 
 export default nextConfig;

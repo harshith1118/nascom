@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Bot, ShieldCheck, FileUp, ArrowRight } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 
 // Add performance optimizations
 export const dynamic = 'force-dynamic';
@@ -49,16 +48,7 @@ export default function DashboardPage() {
                     </Button>
                 </div>
             </div>
-            <div className="relative h-64 md:h-full">
-                <Image
-                    src="/louis-reed-pwcKF7L4-no-unsplash.jpg"
-                    alt="AI in Healthcare"
-                    fill
-                    className="object-cover"
-                    data-ai-hint="healthcare technology"
-                    priority={true}
-                />
-            </div>
+            {/* Removed image that might be causing authentication issues */}
         </div>
       </Card>
 

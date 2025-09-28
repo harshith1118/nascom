@@ -1,53 +1,43 @@
 'use server';
 /**
- * @fileOverview This file contains a Genkit flow that generates test cases from product requirement documents (PRDs).
+ * @fileOverview This file contains functionality that generates test cases from product requirement documents (PRDs).
  *
  * - generateTestCasesFromRequirements - A function that generates test cases from requirements.
  * - GenerateTestCasesFromRequirementsInput - The input type for the generateTestCasesFromRequirements function.
  * - GenerateTestCasesFromRequirementsOutput - The return type for the generateTestCasesFromRequirements function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const GenerateTestCasesFromRequirementsInputSchema = z.object({
-  productRequirementDocument: z
-    .string()
-    .describe(
-      'The product requirement document (PRD) in text format.'
-    ),
-});
-export type GenerateTestCasesFromRequirementsInput = z.infer<
-  typeof GenerateTestCasesFromRequirementsInputSchema
->;
+export interface GenerateTestCasesFromRequirementsInput {
+  productRequirementDocument: string;
+}
 
-const GenerateTestCasesFromRequirementsOutputSchema = z.object({
-  testCases: z
-    .string()
-    .describe(
-      'The generated test cases in a structured format (e.g., JSON or Markdown).'
-    ),
-  complianceReport: z
-    .string()
-    .describe(
-      'A report indicating the compliance of the generated test cases with healthcare standards (e.g., FDA, ISO 13485, GDPR).'
-    ),
-});
-export type GenerateTestCasesFromRequirementsOutput = z.infer<
-  typeof GenerateTestCasesFromRequirementsOutputSchema
->;
+export interface GenerateTestCasesFromRequirementsOutput {
+  testCases: string;
+  complianceReport: string;
+}
 
 export async function generateTestCasesFromRequirements(
   input: GenerateTestCasesFromRequirementsInput
 ): Promise<GenerateTestCasesFromRequirementsOutput> {
-  return generateTestCasesFromRequirementsFlow(input);
-}
+  const {productRequirementDocument} = input;
 
-const generateTestCasesPrompt = ai.definePrompt({
-  name: 'generateTestCasesPrompt',
-  input: {schema: GenerateTestCasesFromRequirementsInputSchema},
-  output: {schema: GenerateTestCasesFromRequirementsOutputSchema},
-  prompt: `You are an expert QA engineer specializing in healthcare software testing. Your task is to analyze the provided software requirements and generate exactly 3 comprehensive test cases in the specified format.
+  // Validate input
+  if (!productRequirementDocument || productRequirementDocument.trim().length < 50) {
+    throw new Error('Product requirements must be at least 50 characters long.');
+  }
+
+  try {
+    // Only initialize the API when the function is called
+    if (!process.env.GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY is not set in environment variables');
+    }
+    
+    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+    const prompt = `You are an expert QA engineer specializing in healthcare software testing. Your task is to analyze the provided software requirements and generate exactly 3 comprehensive test cases in the specified format.
 
 For each test case, you MUST follow this EXACT format:
 ### Case ID: TC-001
@@ -66,51 +56,79 @@ Separate each test case with:
 After the test cases, provide a brief compliance note that starts with "Compliance Note:" and explains how these test cases address healthcare standards (FDA, ISO 13485, GDPR).
 
 Software Requirements:
-{{{productRequirementDocument}}}
+${productRequirementDocument}
 
-Test Cases:
-`,
-});
+Test Cases:`;
 
-const generateTestCasesFromRequirementsFlow = ai.defineFlow(
-  {
-    name: 'generateTestCasesFromRequirementsFlow',
-    inputSchema: GenerateTestCasesFromRequirementsInputSchema,
-    outputSchema: GenerateTestCasesFromRequirementsOutputSchema,
-  },
-  async input => {
-    const {output} = await generateTestCasesPrompt(input);
-    
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
     // Extract test cases and compliance report from the AI output
     let testCases = '';
     let complianceReport = '';
     
-    if (output && typeof output === 'object' && 'testCases' in output) {
-      // If the AI returned the structured output directly
-      testCases = output.testCases as string;
-      complianceReport = output.complianceReport as string;
-    } else if (output) {
-      // Convert output to string to handle different response formats
-      const outputString = JSON.stringify(output);
-      const complianceIndex = outputString.indexOf('Compliance Note:');
-      
-      if (complianceIndex !== -1) {
-        testCases = outputString.substring(0, complianceIndex).trim();
-        complianceReport = outputString.substring(complianceIndex).trim();
-      } else {
-        // Fallback: assume entire content is test cases
-        testCases = outputString;
-        complianceReport = 'Compliance verification not provided in AI response.';
-      }
+    const complianceIndex = text.indexOf('Compliance Note:');
+    
+    if (complianceIndex !== -1) {
+      testCases = text.substring(0, complianceIndex).trim();
+      complianceReport = text.substring(complianceIndex).trim();
     } else {
-      // Fallback for any other format
-      testCases = 'Error: Could not parse AI response format.';
-      complianceReport = 'Error: Could not extract compliance report.';
+      // Fallback: assume entire content is test cases
+      testCases = text;
+      complianceReport = 'Compliance verification not provided in AI response.';
     }
     
     return {
       testCases,
       complianceReport
     };
+  } catch (error) {
+    console.error('Error generating test cases:', error);
+    
+    // Return mock test cases for development purposes when API fails
+    if (process.env.NODE_ENV === 'development') {
+      return {
+        testCases: `### Case ID: TC-001
+**Title:** User Registration Form Validation
+**Description:** Verify the registration form validates user inputs correctly
+**Test Steps:**
+1. Navigate to the registration page
+2. Enter invalid email format in the email field
+3. Enter password with less than 8 characters
+4. Click the register button
+**Expected Results:** Appropriate validation errors are displayed for both fields
+**Priority:** High
+
+---
+
+### Case ID: TC-002
+**Title:** User Login Functionality
+**Description:** Verify that authenticated users can successfully log in
+**Test Steps:**
+1. Navigate to the login page
+2. Enter valid credentials
+3. Click the login button
+4. Verify successful login
+**Expected Results:** User is redirected to the dashboard
+**Priority:** High
+
+---
+
+### Case ID: TC-003
+**Title:** Password Reset Process
+**Description:** Verify the password reset functionality works properly
+**Test Steps:**
+1. Click the 'Forgot Password' link
+2. Enter registered email address
+3. Click the reset password button
+4. Check email for password reset link
+**Expected Results:** Password reset email is sent to the user
+**Priority:** Medium`,
+        complianceReport: 'Compliance Note: These test cases focus on user authentication security, which is critical for healthcare applications handling protected health information (PHI). They align with HIPAA requirements for secure access controls.'
+      };
+    } else {
+      throw new Error('Failed to generate test cases. Please ensure your Google API key is properly configured and valid.');
+    }
   }
-);
+}

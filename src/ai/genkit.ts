@@ -1,7 +1,3 @@
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/googleai';
-
-export const ai = genkit({
-  plugins: [googleAI()],
-  model: 'googleai/gemini-2.5-flash',
-});
+// Placeholder file to maintain imports that might be used elsewhere
+// The genkit functionality has been replaced with direct Google AI API calls
+// for better Windows compatibility
