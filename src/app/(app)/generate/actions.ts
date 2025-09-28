@@ -5,6 +5,12 @@ import { generateTestCasesFromRequirements, GenerateTestCasesFromRequirementsInp
 export async function generateTests(input: GenerateTestCasesFromRequirementsInput) {
     try {
         console.log("Generating tests with input:", input);
+        
+        // Add basic validation before calling the flow
+        if (!input || !input.productRequirementDocument || input.productRequirementDocument.trim().length < 10) {
+            throw new Error("Product requirements must be provided and should be at least 10 characters long.");
+        }
+        
         const output = await generateTestCasesFromRequirements(input);
         console.log("AI output received:", output);
         
@@ -26,7 +32,9 @@ export async function generateTests(input: GenerateTestCasesFromRequirementsInpu
     } catch (error) {
         console.error("Error in generateTests server action:", error);
         if (error instanceof Error) {
-            throw new Error(`Failed to generate test cases: ${error.message}`);
+            // Re-throw the error to maintain the server action behavior
+            // This ensures that the UI can properly handle the error
+            throw error;
         } else {
             throw new Error("Failed to generate test cases due to an unexpected error. Please try again.");
         }
