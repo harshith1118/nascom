@@ -92,7 +92,18 @@ export default function ImportPage() {
                     <FormLabel>Test Cases to Import</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Paste your test cases here..."
+                        placeholder={`Paste your test cases here...
+
+Example format:
+### Case ID: TC-001
+**Title:** User Login Functionality
+**Description:** Verify users can log in with valid credentials
+**Test Steps:**
+1. Navigate to login page
+2. Enter valid username and password
+3. Click login button
+**Expected Results:** User is successfully logged in
+**Priority:** High`}
                         className="min-h-[300px] resize-y"
                         {...field}
                       />

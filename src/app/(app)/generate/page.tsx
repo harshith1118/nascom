@@ -225,7 +225,16 @@ export default function GeneratePage() {
                       <div className="space-y-2">
                         <Textarea
                           id="requirements-textarea"
-                          placeholder="Paste your requirements here..."
+                          placeholder={`Paste your requirements here...
+
+Example requirements:
+As a healthcare professional, I want to log in securely to access patient information.
+
+The system should validate user credentials against a secure database.
+
+The login session should expire after 30 minutes of inactivity.
+
+All login attempts should be logged for security auditing.`}
                           className="min-h-[300px] resize-y"
                           {...form.register('requirements')}
                           disabled={isLoading}

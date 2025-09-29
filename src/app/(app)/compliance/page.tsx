@@ -86,7 +86,18 @@ export default function CompliancePage() {
                     <FormLabel>Test Cases</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Paste your test cases here in Markdown or plain text..."
+                        placeholder={`Paste your test cases here in Markdown or plain text...
+
+Example format:
+### Case ID: TC-001
+**Title:** User Login Functionality
+**Description:** Verify users can log in with valid credentials
+**Test Steps:**
+1. Navigate to login page
+2. Enter valid username and password
+3. Click login button
+**Expected Results:** User is successfully logged in
+**Priority:** High`}
                         className="min-h-[250px] resize-y"
                         {...field}
                       />
