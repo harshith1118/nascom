@@ -65,7 +65,19 @@ Recommendations:
 - [Recommendation 2]
 - [Recommendation 3]`;
 
-    const result = await model.generateContent(prompt);
+    // Create a timeout promise to avoid hanging requests
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('API request timed out')), 30000); // 30 second timeout
+    });
+
+    // Race the API call against the timeout
+    const resultPromise = model.generateContent(prompt);
+    
+    const result = await Promise.race([
+        resultPromise,
+        timeoutPromise
+    ]) as any;
+    
     const response = await result.response;
     
     // Check for safety reasons before getting text
