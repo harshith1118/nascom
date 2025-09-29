@@ -45,7 +45,7 @@ export default function CompliancePage() {
         standards: values.standards.split(',').map(s => s.trim()),
       });
 
-      if (!result.report) {
+      if (!result || !result.report) {
         throw new Error("The AI failed to generate a compliance report. Please try again.");
       }
 

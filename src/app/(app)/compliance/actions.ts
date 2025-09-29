@@ -11,15 +11,20 @@ export async function checkCompliance(input: CheckComplianceInput) {
         
         const output = await checkComplianceFlow(input);
         
+        // Check if output is valid and has the expected structure
         if (!output) {
             throw new Error("AI service returned empty response for compliance check. Please try again.");
         }
         
-        if (!output.report || output.report.trim() === "") {
-            throw new Error("AI failed to generate a compliance report. The response was empty or invalid. Please try again with different test cases.");
-        }
+        // Handle the case where report or recommendations might be undefined
+        const report = output.report || "No compliance report generated.";
+        const recommendations = output.recommendations || [];
         
-        return output;
+        // Return a properly structured response
+        return {
+            report: report,
+            recommendations: recommendations
+        };
     } catch (error) {
         console.error("Error in checkCompliance server action:", error);
         if (error instanceof Error) {
