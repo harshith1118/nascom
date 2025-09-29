@@ -136,6 +136,13 @@ Recommendations:
   } catch (error) {
     console.error('Error checking compliance:', error);
     
+    // Check if this is a specific API error that we should log differently
+    if (error instanceof Error) {
+      if (error.message.includes('API') || error.message.includes('auth') || error.message.includes('400') || error.message.includes('401') || error.message.includes('403')) {
+        console.warn('API authentication or permission error, returning mock data:', error.message);
+      }
+    }
+    
     // Return mock compliance report as a fallback - this prevents server component crashes
     // and allows the UI to continue working even if the AI API is temporarily unavailable
     return {

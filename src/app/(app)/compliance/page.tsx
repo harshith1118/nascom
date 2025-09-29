@@ -56,10 +56,17 @@ export default function CompliancePage() {
       });
     } catch (error) {
       console.error('Failed to check compliance:', error);
+      let errorMessage = 'An unknown error occurred.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
       toast({
         variant: 'destructive',
         title: 'Check Failed',
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
