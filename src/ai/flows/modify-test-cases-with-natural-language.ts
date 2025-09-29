@@ -31,42 +31,44 @@ export async function modifyTestCasesWithNaturalLanguage(
       // Return mock modified test cases as a graceful fallback
       return {
         modifiedTestCases: `### Case ID: TC-001
-**Title:** Updated User Registration Form Validation
-**Description:** Verify the registration form validates user inputs correctly with additional checks
+**Title:** Enhanced Medical Device Authentication Validation
+**Description:** Verify multi-factor authentication requirements for medical device access with biometric validation
 **Test Steps:**
-1. Navigate to the registration page
-2. Enter invalid email format in the email field
-3. Enter password with less than 8 characters
-4. Click the register button
-5. Check for additional validation messages
-**Expected Results:** Appropriate validation errors are displayed for all invalid fields
-**Priority:** High
+1. Access the medical device interface
+2. Enter primary authentication credentials
+3. Complete biometric validation
+4. Attempt device access without secondary validation
+5. Verify access is denied without complete authentication
+**Expected Results:** Device remains locked until full multi-factor authentication is completed
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-002
-**Title:** Updated User Login Functionality
-**Description:** Verify that authenticated users can successfully log in with enhanced security
+**Title:** Improved Patient Data Access Control
+**Description:** Verify role-based access controls prevent unauthorized patient data access in multi-department environments
 **Test Steps:**
-1. Navigate to the login page
-2. Enter valid credentials
-3. Click the login button
-4. Verify successful login with security token
-**Expected Results:** User is redirected to the dashboard with active session
-**Priority:** High
+1. Log in with nurse account credentials
+2. Navigate to cardiology patient records
+3. Attempt to access radiology reports
+4. Verify access is denied based on role permissions
+5. Log in with authorized radiologist account
+**Expected Results:** Access granted only with appropriate role-based permissions
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-003
-**Title:** Updated Password Reset Process
-**Description:** Verify the enhanced password reset functionality works properly
+**Title:** Advanced Medical Alert System Validation
+**Description:** Verify the medical alert system properly flags critical patient conditions and triggers appropriate notifications
 **Test Steps:**
-1. Click the 'Forgot Password' link
-2. Enter registered email address
-3. Click the reset password button
-4. Check email for secure password reset link
-**Expected Results:** Secure password reset email with time-limited token is sent to the user
-**Priority:** Medium`
+1. Access patient monitoring interface
+2. Simulate critical vital sign parameters
+3. Verify alert system triggers
+4. Confirm notifications are sent to appropriate medical staff
+5. Validate alert escalation protocols
+**Expected Results:** Medical staff receive timely alerts with appropriate priority levels
+**Priority:** Critical`
       };
     }
     
@@ -91,42 +93,44 @@ Modified Test Cases:`;
       console.warn('No response received from AI model during test case modification, returning mock data');
       return {
         modifiedTestCases: `### Case ID: TC-001
-**Title:** Updated User Registration Form Validation
-**Description:** Verify the registration form validates user inputs correctly with additional checks
+**Title:** Enhanced Medical Device Authentication Validation
+**Description:** Verify multi-factor authentication requirements for medical device access with biometric validation
 **Test Steps:**
-1. Navigate to the registration page
-2. Enter invalid email format in the email field
-3. Enter password with less than 8 characters
-4. Click the register button
-5. Check for additional validation messages
-**Expected Results:** Appropriate validation errors are displayed for all invalid fields
-**Priority:** High
+1. Access the medical device interface
+2. Enter primary authentication credentials
+3. Complete biometric validation
+4. Attempt device access without secondary validation
+5. Verify access is denied without complete authentication
+**Expected Results:** Device remains locked until full multi-factor authentication is completed
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-002
-**Title:** Updated User Login Functionality
-**Description:** Verify that authenticated users can successfully log in with enhanced security
+**Title:** Improved Patient Data Access Control
+**Description:** Verify role-based access controls prevent unauthorized patient data access in multi-department environments
 **Test Steps:**
-1. Navigate to the login page
-2. Enter valid credentials
-3. Click the login button
-4. Verify successful login with security token
-**Expected Results:** User is redirected to the dashboard with active session
-**Priority:** High
+1. Log in with nurse account credentials
+2. Navigate to cardiology patient records
+3. Attempt to access radiology reports
+4. Verify access is denied based on role permissions
+5. Log in with authorized radiologist account
+**Expected Results:** Access granted only with appropriate role-based permissions
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-003
-**Title:** Updated Password Reset Process
-**Description:** Verify the enhanced password reset functionality works properly
+**Title:** Advanced Medical Alert System Validation
+**Description:** Verify the medical alert system properly flags critical patient conditions and triggers appropriate notifications
 **Test Steps:**
-1. Click the 'Forgot Password' link
-2. Enter registered email address
-3. Click the reset password button
-4. Check email for secure password reset link
-**Expected Results:** Secure password reset email with time-limited token is sent to the user
-**Priority:** Medium`
+1. Access patient monitoring interface
+2. Simulate critical vital sign parameters
+3. Verify alert system triggers
+4. Confirm notifications are sent to appropriate medical staff
+5. Validate alert escalation protocols
+**Expected Results:** Medical staff receive timely alerts with appropriate priority levels
+**Priority:** Critical`
       };
     }
     
@@ -136,42 +140,44 @@ Modified Test Cases:`;
       console.warn('Empty response received from AI model during test case modification, returning mock data');
       return {
         modifiedTestCases: `### Case ID: TC-001
-**Title:** Updated User Registration Form Validation
-**Description:** Verify the registration form validates user inputs correctly with additional checks
+**Title:** Enhanced Medical Device Authentication Validation
+**Description:** Verify multi-factor authentication requirements for medical device access with biometric validation
 **Test Steps:**
-1. Navigate to the registration page
-2. Enter invalid email format in the email field
-3. Enter password with less than 8 characters
-4. Click the register button
-5. Check for additional validation messages
-**Expected Results:** Appropriate validation errors are displayed for all invalid fields
-**Priority:** High
+1. Access the medical device interface
+2. Enter primary authentication credentials
+3. Complete biometric validation
+4. Attempt device access without secondary validation
+5. Verify access is denied without complete authentication
+**Expected Results:** Device remains locked until full multi-factor authentication is completed
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-002
-**Title:** Updated User Login Functionality
-**Description:** Verify that authenticated users can successfully log in with enhanced security
+**Title:** Improved Patient Data Access Control
+**Description:** Verify role-based access controls prevent unauthorized patient data access in multi-department environments
 **Test Steps:**
-1. Navigate to the login page
-2. Enter valid credentials
-3. Click the login button
-4. Verify successful login with security token
-**Expected Results:** User is redirected to the dashboard with active session
-**Priority:** High
+1. Log in with nurse account credentials
+2. Navigate to cardiology patient records
+3. Attempt to access radiology reports
+4. Verify access is denied based on role permissions
+5. Log in with authorized radiologist account
+**Expected Results:** Access granted only with appropriate role-based permissions
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-003
-**Title:** Updated Password Reset Process
-**Description:** Verify the enhanced password reset functionality works properly
+**Title:** Advanced Medical Alert System Validation
+**Description:** Verify the medical alert system properly flags critical patient conditions and triggers appropriate notifications
 **Test Steps:**
-1. Click the 'Forgot Password' link
-2. Enter registered email address
-3. Click the reset password button
-4. Check email for secure password reset link
-**Expected Results:** Secure password reset email with time-limited token is sent to the user
-**Priority:** Medium`
+1. Access patient monitoring interface
+2. Simulate critical vital sign parameters
+3. Verify alert system triggers
+4. Confirm notifications are sent to appropriate medical staff
+5. Validate alert escalation protocols
+**Expected Results:** Medical staff receive timely alerts with appropriate priority levels
+**Priority:** Critical`
       };
     }
 
@@ -185,42 +191,44 @@ Modified Test Cases:`;
     // and allows the UI to continue working even if the AI API is temporarily unavailable
     return {
       modifiedTestCases: `### Case ID: TC-001
-**Title:** Updated User Registration Form Validation
-**Description:** Verify the registration form validates user inputs correctly with additional checks
+**Title:** Enhanced Medical Device Authentication Validation
+**Description:** Verify multi-factor authentication requirements for medical device access with biometric validation
 **Test Steps:**
-1. Navigate to the registration page
-2. Enter invalid email format in the email field
-3. Enter password with less than 8 characters
-4. Click the register button
-5. Check for additional validation messages
-**Expected Results:** Appropriate validation errors are displayed for all invalid fields
-**Priority:** High
+1. Access the medical device interface
+2. Enter primary authentication credentials
+3. Complete biometric validation
+4. Attempt device access without secondary validation
+5. Verify access is denied without complete authentication
+**Expected Results:** Device remains locked until full multi-factor authentication is completed
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-002
-**Title:** Updated User Login Functionality
-**Description:** Verify that authenticated users can successfully log in with enhanced security
+**Title:** Improved Patient Data Access Control
+**Description:** Verify role-based access controls prevent unauthorized patient data access in multi-department environments
 **Test Steps:**
-1. Navigate to the login page
-2. Enter valid credentials
-3. Click the login button
-4. Verify successful login with security token
-**Expected Results:** User is redirected to the dashboard with active session
-**Priority:** High
+1. Log in with nurse account credentials
+2. Navigate to cardiology patient records
+3. Attempt to access radiology reports
+4. Verify access is denied based on role permissions
+5. Log in with authorized radiologist account
+**Expected Results:** Access granted only with appropriate role-based permissions
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-003
-**Title:** Updated Password Reset Process
-**Description:** Verify the enhanced password reset functionality works properly
+**Title:** Advanced Medical Alert System Validation
+**Description:** Verify the medical alert system properly flags critical patient conditions and triggers appropriate notifications
 **Test Steps:**
-1. Click the 'Forgot Password' link
-2. Enter registered email address
-3. Click the reset password button
-4. Check email for secure password reset link
-**Expected Results:** Secure password reset email with time-limited token is sent to the user
-**Priority:** Medium`
+1. Access patient monitoring interface
+2. Simulate critical vital sign parameters
+3. Verify alert system triggers
+4. Confirm notifications are sent to appropriate medical staff
+5. Validate alert escalation protocols
+**Expected Results:** Medical staff receive timely alerts with appropriate priority levels
+**Priority:** Critical`
     };
   }
 }

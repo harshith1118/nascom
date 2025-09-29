@@ -37,42 +37,45 @@ export async function generateTestCasesFromRequirements(
       // This provides a graceful fallback for both local and deployed environments
       return {
         testCases: `### Case ID: TC-001
-**Title:** User Registration Form Validation
-**Description:** Verify the registration form validates user inputs correctly
+**Title:** Medical Device User Authentication Validation
+**Description:** Verify that the medical device system properly authenticates healthcare professionals before granting access
 **Test Steps:**
-1. Navigate to the registration page
-2. Enter invalid email format in the email field
-3. Enter password with less than 8 characters
-4. Click the register button
-**Expected Results:** Appropriate validation errors are displayed for both fields
-**Priority:** High
+1. Access the device login interface
+2. Enter an unregistered user ID
+3. Enter an incorrect password
+4. Attempt to log in
+5. Verify that access is denied
+**Expected Results:** System displays authentication failure message and prevents unauthorized access
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-002
-**Title:** User Login Functionality
-**Description:** Verify that authenticated users can successfully log in
+**Title:** Patient Data Encryption Verification
+**Description:** Ensure patient data is encrypted during transmission and storage according to healthcare standards
 **Test Steps:**
-1. Navigate to the login page
-2. Enter valid credentials
-3. Click the login button
-4. Verify successful login
-**Expected Results:** User is redirected to the dashboard
-**Priority:** High
+1. Log into the system with authorized credentials
+2. Navigate to patient records section
+3. Access a patient's sensitive data
+4. Attempt to extract data via unauthorized channels
+5. Verify encryption protocols are enforced
+**Expected Results:** All patient data is encrypted and inaccessible through unauthorized means
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-003
-**Title:** Password Reset Process
-**Description:** Verify the password reset functionality works properly
+**Title:** Medical Data Backup and Recovery Functionality
+**Description:** Verify the system can reliably backup and restore critical medical data within required timeframes
 **Test Steps:**
-1. Click the 'Forgot Password' link
-2. Enter registered email address
-3. Click the reset password button
-4. Check email for password reset link
-**Expected Results:** Password reset email is sent to the user
-**Priority:** Medium`,
-        complianceReport: 'Compliance Note: These test cases focus on user authentication security, which is critical for healthcare applications handling protected health information (PHI). They align with HIPAA requirements for secure access controls.'
+1. Generate a set of test patient records
+2. Trigger the backup process
+3. Simulate a data loss scenario by deleting recent records
+4. Execute the recovery process
+5. Verify all data integrity after recovery
+**Expected Results:** All data is successfully backed up and recovered without corruption
+**Priority:** High`,
+        complianceReport: 'Compliance Note: These test cases ensure adherence to HIPAA, FDA, and ISO 13485 standards for medical device software. They validate critical security controls, data protection mechanisms, and system reliability requirements essential for healthcare applications.'
       };
     }
     
@@ -111,42 +114,45 @@ Test Cases:`;
       // Return mock data instead of throwing error to prevent server component crashes
       return {
         testCases: `### Case ID: TC-001
-**Title:** User Registration Form Validation
-**Description:** Verify the registration form validates user inputs correctly
+**Title:** Medical Device User Authentication Validation
+**Description:** Verify that the medical device system properly authenticates healthcare professionals before granting access
 **Test Steps:**
-1. Navigate to the registration page
-2. Enter invalid email format in the email field
-3. Enter password with less than 8 characters
-4. Click the register button
-**Expected Results:** Appropriate validation errors are displayed for both fields
-**Priority:** High
+1. Access the device login interface
+2. Enter an unregistered user ID
+3. Enter an incorrect password
+4. Attempt to log in
+5. Verify that access is denied
+**Expected Results:** System displays authentication failure message and prevents unauthorized access
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-002
-**Title:** User Login Functionality
-**Description:** Verify that authenticated users can successfully log in
+**Title:** Patient Data Encryption Verification
+**Description:** Ensure patient data is encrypted during transmission and storage according to healthcare standards
 **Test Steps:**
-1. Navigate to the login page
-2. Enter valid credentials
-3. Click the login button
-4. Verify successful login
-**Expected Results:** User is redirected to the dashboard
-**Priority:** High
+1. Log into the system with authorized credentials
+2. Navigate to patient records section
+3. Access a patient's sensitive data
+4. Attempt to extract data via unauthorized channels
+5. Verify encryption protocols are enforced
+**Expected Results:** All patient data is encrypted and inaccessible through unauthorized means
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-003
-**Title:** Password Reset Process
-**Description:** Verify the password reset functionality works properly
+**Title:** Medical Data Backup and Recovery Functionality
+**Description:** Verify the system can reliably backup and restore critical medical data within required timeframes
 **Test Steps:**
-1. Click the 'Forgot Password' link
-2. Enter registered email address
-3. Click the reset password button
-4. Check email for password reset link
-**Expected Results:** Password reset email is sent to the user
-**Priority:** Medium`,
-        complianceReport: 'Compliance Note: These test cases focus on user authentication security, which is critical for healthcare applications handling protected health information (PHI). They align with HIPAA requirements for secure access controls.'
+1. Generate a set of test patient records
+2. Trigger the backup process
+3. Simulate a data loss scenario by deleting recent records
+4. Execute the recovery process
+5. Verify all data integrity after recovery
+**Expected Results:** All data is successfully backed up and recovered without corruption
+**Priority:** High`,
+        complianceReport: 'Compliance Note: These test cases ensure adherence to HIPAA, FDA, and ISO 13485 standards for medical device software. They validate critical security controls, data protection mechanisms, and system reliability requirements essential for healthcare applications.'
       };
     }
     
@@ -157,42 +163,45 @@ Test Cases:`;
       // Return mock data instead of throwing error to prevent server component crashes
       return {
         testCases: `### Case ID: TC-001
-**Title:** User Registration Form Validation
-**Description:** Verify the registration form validates user inputs correctly
+**Title:** Medical Device User Authentication Validation
+**Description:** Verify that the medical device system properly authenticates healthcare professionals before granting access
 **Test Steps:**
-1. Navigate to the registration page
-2. Enter invalid email format in the email field
-3. Enter password with less than 8 characters
-4. Click the register button
-**Expected Results:** Appropriate validation errors are displayed for both fields
-**Priority:** High
+1. Access the device login interface
+2. Enter an unregistered user ID
+3. Enter an incorrect password
+4. Attempt to log in
+5. Verify that access is denied
+**Expected Results:** System displays authentication failure message and prevents unauthorized access
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-002
-**Title:** User Login Functionality
-**Description:** Verify that authenticated users can successfully log in
+**Title:** Patient Data Encryption Verification
+**Description:** Ensure patient data is encrypted during transmission and storage according to healthcare standards
 **Test Steps:**
-1. Navigate to the login page
-2. Enter valid credentials
-3. Click the login button
-4. Verify successful login
-**Expected Results:** User is redirected to the dashboard
-**Priority:** High
+1. Log into the system with authorized credentials
+2. Navigate to patient records section
+3. Access a patient's sensitive data
+4. Attempt to extract data via unauthorized channels
+5. Verify encryption protocols are enforced
+**Expected Results:** All patient data is encrypted and inaccessible through unauthorized means
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-003
-**Title:** Password Reset Process
-**Description:** Verify the password reset functionality works properly
+**Title:** Medical Data Backup and Recovery Functionality
+**Description:** Verify the system can reliably backup and restore critical medical data within required timeframes
 **Test Steps:**
-1. Click the 'Forgot Password' link
-2. Enter registered email address
-3. Click the reset password button
-4. Check email for password reset link
-**Expected Results:** Password reset email is sent to the user
-**Priority:** Medium`,
-        complianceReport: 'Compliance Note: These test cases focus on user authentication security, which is critical for healthcare applications handling protected health information (PHI). They align with HIPAA requirements for secure access controls.'
+1. Generate a set of test patient records
+2. Trigger the backup process
+3. Simulate a data loss scenario by deleting recent records
+4. Execute the recovery process
+5. Verify all data integrity after recovery
+**Expected Results:** All data is successfully backed up and recovered without corruption
+**Priority:** High`,
+        complianceReport: 'Compliance Note: These test cases ensure adherence to HIPAA, FDA, and ISO 13485 standards for medical device software. They validate critical security controls, data protection mechanisms, and system reliability requirements essential for healthcare applications.'
       };
     }
 
@@ -222,42 +231,45 @@ Test Cases:`;
     // and allows the UI to continue working even if the AI API is temporarily unavailable
     return {
       testCases: `### Case ID: TC-001
-**Title:** User Registration Form Validation
-**Description:** Verify the registration form validates user inputs correctly
+**Title:** Medical Device User Authentication Validation
+**Description:** Verify that the medical device system properly authenticates healthcare professionals before granting access
 **Test Steps:**
-1. Navigate to the registration page
-2. Enter invalid email format in the email field
-3. Enter password with less than 8 characters
-4. Click the register button
-**Expected Results:** Appropriate validation errors are displayed for both fields
-**Priority:** High
+1. Access the device login interface
+2. Enter an unregistered user ID
+3. Enter an incorrect password
+4. Attempt to log in
+5. Verify that access is denied
+**Expected Results:** System displays authentication failure message and prevents unauthorized access
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-002
-**Title:** User Login Functionality
-**Description:** Verify that authenticated users can successfully log in
+**Title:** Patient Data Encryption Verification
+**Description:** Ensure patient data is encrypted during transmission and storage according to healthcare standards
 **Test Steps:**
-1. Navigate to the login page
-2. Enter valid credentials
-3. Click the login button
-4. Verify successful login
-**Expected Results:** User is redirected to the dashboard
-**Priority:** High
+1. Log into the system with authorized credentials
+2. Navigate to patient records section
+3. Access a patient's sensitive data
+4. Attempt to extract data via unauthorized channels
+5. Verify encryption protocols are enforced
+**Expected Results:** All patient data is encrypted and inaccessible through unauthorized means
+**Priority:** Critical
 
 ---
 
 ### Case ID: TC-003
-**Title:** Password Reset Process
-**Description:** Verify the password reset functionality works properly
+**Title:** Medical Data Backup and Recovery Functionality
+**Description:** Verify the system can reliably backup and restore critical medical data within required timeframes
 **Test Steps:**
-1. Click the 'Forgot Password' link
-2. Enter registered email address
-3. Click the reset password button
-4. Check email for password reset link
-**Expected Results:** Password reset email is sent to the user
-**Priority:** Medium`,
-      complianceReport: 'Compliance Note: These test cases focus on user authentication security, which is critical for healthcare applications handling protected health information (PHI). They align with HIPAA requirements for secure access controls.'
+1. Generate a set of test patient records
+2. Trigger the backup process
+3. Simulate a data loss scenario by deleting recent records
+4. Execute the recovery process
+5. Verify all data integrity after recovery
+**Expected Results:** All data is successfully backed up and recovered without corruption
+**Priority:** High`,
+      complianceReport: 'Compliance Note: These test cases ensure adherence to HIPAA, FDA, and ISO 13485 standards for medical device software. They validate critical security controls, data protection mechanisms, and system reliability requirements essential for healthcare applications.'
     };
   }
 }

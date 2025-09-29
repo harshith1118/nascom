@@ -23,7 +23,7 @@ We've recently made significant improvements to the test case generation reliabi
 
 2. Set up environment variables:
    Create a `.env` file with your Google AI API key:
-   ```
+   ```  
    GOOGLE_API_KEY=your_google_ai_api_key_here
    ```
 
@@ -37,6 +37,21 @@ We've recently made significant improvements to the test case generation reliabi
    ```
 
 4. Access the application at `http://localhost:9002`
+
+## Deployment
+
+### Netlify
+
+This project can be deployed to Netlify. To enable full AI functionality, set the environment variable in your Netlify dashboard:
+
+1. Go to **Site settings** → **Build & deploy** → **Environment**
+2. Add the environment variable: `GOOGLE_API_KEY=your_google_ai_api_key_here`
+
+### Vercel
+
+This project is configured for Vercel deployment. Add the `GOOGLE_API_KEY` environment variable during project setup.
+
+When the API key is not available (e.g., in deployed environments without the key), the application gracefully falls back to mock data to ensure functionality.
 
 ## Features
 
