@@ -17,15 +17,21 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
   const testCases: TestCase[] = [];
 
   testCaseBlocks.forEach((block, index) => {
-    // Extract each section using more reliable regex patterns
-    const caseIdMatch = block.match(/###\s*Case ID:\s*(.+)/i);
-    const titleMatch = block.match(/\*\*Title:\*\*\s*(.+)/i);
-    const descriptionMatch = block.match(/\*\*Description:\*\*\s*(.+)/i);
+    // Use a more flexible approach to extract all sections
+    // First, let's match Case ID
+    const caseIdMatch = block.match(/###\s*Case\s+ID:?\s*(.+)/i);
     
-    // Extract test steps section with better boundary detection
-    const stepsMatch = block.match(/\*\*Test Steps:\*\*([\s\S]*?)(?=\n\*\*Expected Results:\*\*|\n\*\*Priority:\*\*|\n###|$)/i);
-    const expectedResultsMatch = block.match(/\*\*Expected Results:\*\*\s*(.+)/i);
-    const priorityMatch = block.match(/\*\*Priority:\*\*\s*(.+)/i);
+    // Find all sections with flexible spacing
+    // Match **Title:** followed by any content until the next section or end
+    const titleMatch = block.match(/\*\*Title:\*\*[ \t]*([^\n\r]+)/i);
+    // Match **Description:** followed by any content until next section
+    const descriptionMatch = block.match(/\*\*Description:\*\*([^\n\r]*)/i);
+    // Match **Test Steps:** section with flexible spacing
+    const stepsMatch = block.match(/\*\*Test Steps:\*\*([^\0]*?)(?=\n\*\*(?:Expected Results|Priority):\*\*|\n###|$)/i);
+    // Match **Expected Results:** section
+    const expectedResultsMatch = block.match(/\*\*Expected Results:\*\*([^\n\r]+)/i);
+    // Match **Priority:** section
+    const priorityMatch = block.match(/\*\*Priority:\*\*([^\n\r]+)/i);
 
     // If no Case ID, Title, or Test Steps found, this might not be a valid test case block
     if (!caseIdMatch && !titleMatch && !stepsMatch) {
@@ -35,15 +41,23 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
     // Parse test steps more reliably
     let testSteps: string[] = [];
     if (stepsMatch && stepsMatch[1]) {
-      testSteps = stepsMatch[1]
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
-        .map(line => line.replace(/^\d+\.\s*/, '').trim())
-        .filter(step => step.length > 0);
+      // Split by newlines and extract steps that start with numbers
+      const allLines = stepsMatch[1].split('\n');
+      for (const line of allLines) {
+        const trimmedLine = line.trim();
+        // Check if the line starts with a number followed by a period
+        if (/^\d+\.\s/.test(trimmedLine)) {
+          const step = trimmedLine.replace(/^\d+\.\s*/, '').trim();
+          if (step.length > 0 && 
+              !step.includes('**Expected Results:**') && 
+              !step.includes('**Priority:**')) {
+            testSteps.push(step);
+          }
+        }
+      }
     }
 
-    // Only create a test case if we have a title or at least some content
+    // Only create a test case if we have content
     const title = titleMatch ? titleMatch[1].trim() : 'Untitled Test Case';
     if (title.toLowerCase() === 'untitled test case' && testSteps.length === 0) {
       return; // Skip if it's an untitled case with no steps

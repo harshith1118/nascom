@@ -14,6 +14,12 @@ We've recently made significant improvements to the test case generation reliabi
 - Improved error handling and user feedback
 - Better parsing of AI responses
 - More robust validation of generated test cases
+- **NEW**: Integration with LangChain for AI operations
+- **NEW**: Improved text formatting with markdown cleaning utilities
+- **NEW**: Enhanced test case parsing with better format handling
+- **NEW**: AI-powered test case modification with natural language
+- **NEW**: Export functionality to Jira and Azure DevOps
+- **NEW**: Multiple format download capabilities (PDF, Excel, Word, JSON, Text, Markdown)
 
 ## Quick Start
 
@@ -33,10 +39,8 @@ We've recently made significant improvements to the test case generation reliabi
 3. Start the development servers:
 
    ```bash
-   # Terminal 1: Start Genkit AI server
-   npm run genkit:dev
 
-   # Terminal 2: Start Next.js frontend
+   # Terminal : Start Next.js frontend
    npm run dev
    ```
 
@@ -58,6 +62,55 @@ This project can be deployed to Netlify. To enable full AI functionality, set th
 - No-code interface for test case management
 - Test case modification with natural language
 - Import/export capabilities
+- **NEW**: Export to Jira with configurable issue types
+- **NEW**: Export to Azure DevOps with configurable work item types  
+- **NEW**: Multiple format download (PDF, Excel, Word, JSON, Text, Markdown)
+- **NEW**: LangChain-powered AI operations
+- **NEW**: Enhanced text formatting and parsing
+
+## Integration Guides
+
+### Jira Integration
+To export test cases to Jira:
+1. Enter your Jira Base URL (e.g., `https://yourcompany.atlassian.net`)
+2. Provide your email and API token
+3. Specify the project key
+4. Set the issue type (e.g., Task, Story, or for Service Desk projects, the specific request type)
+
+For Service Desk projects, you may need to specify the exact request type name as it appears in your Jira instance.
+
+### Azure DevOps Integration
+To export test cases to Azure DevOps:
+1. Enter your organization name
+2. Provide your project name
+3. Use a Personal Access Token (PAT) with proper permissions
+4. Specify the work item type (e.g., Task, User Story, Bug)
+
+### Download Functionality
+The download feature supports multiple formats:
+- PDF: For document sharing and printing
+- Excel: For spreadsheet-based management
+- Word: For document editing
+- JSON: For data interchange
+- Text/Markdown: For plain text formats
+
+## Architecture Changes
+
+### LangChain Integration
+- Replaced direct Google AI API calls with LangChain's ChatGoogleGenerativeAI
+- Improved timeout handling with 30-second default
+- Better error handling and fallback mechanisms
+- More consistent API interaction patterns
+
+### Text Formatting
+- Added markdown cleaning utility to remove formatting artifacts
+- Improved display of compliance reports and test cases
+- Better handling of inconsistent spacing in inputs
+
+### Parsing Improvements
+- Enhanced regex patterns for more reliable test case extraction
+- Better handling of various input formats
+- Improved validation for missing or malformed sections
 
 ## Documentation
 
@@ -69,3 +122,14 @@ For detailed information about the project, see:
 ## Development
 
 To get started, take a look at src/app/page.tsx.
+
+## Contributing
+
+We welcome contributions! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Commit your changes (`git commit -m 'Add some amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request

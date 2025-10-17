@@ -7,7 +7,9 @@
  * - CheckComplianceOutput - The return type for the checkCompliance function.
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { SystemMessage, HumanMessage } from "@langchain/core/messages";
+import { cleanForDisplay } from "@/lib/formatting";
 
 export interface CheckComplianceInput {
   testCases: string;
@@ -40,8 +42,12 @@ export async function checkCompliance(
       };
     }
     
-    const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    // Initialize LangChain model
+    const model = new ChatGoogleGenerativeAI({
+      apiKey: process.env.GOOGLE_API_KEY,
+      model: "gemini-2.5-flash",
+      timeout: 30000, // 30 second timeout
+    });
 
     const prompt = `You are an expert in healthcare software compliance. Analyze the following test cases and evaluate their compliance with the specified standards: ${standards.join(', ')}.
 
@@ -65,36 +71,16 @@ Recommendations:
 - [Recommendation 2]
 - [Recommendation 3]`;
 
-    // Create a timeout promise to avoid hanging requests
-    const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('API request timed out')), 30000); // 30 second timeout
-    });
+    // Create messages for the model
+    const messages = [
+      new SystemMessage("You are an expert in healthcare software compliance. Analyze test cases for compliance with healthcare standards."),
+      new HumanMessage(prompt)
+    ];
 
-    // Race the API call against the timeout
-    const resultPromise = model.generateContent(prompt);
-    
-    const result = await Promise.race([
-        resultPromise,
-        timeoutPromise
-    ]) as any;
-    
-    const response = await result.response;
-    
-    // Check for safety reasons before getting text
-    if (!response) {
-      console.warn('No response received from AI model during compliance check, returning mock data');
-      return {
-        report: 'Comprehensive compliance analysis indicates adherence to FDA, ISO 13485, GDPR, and HIPAA standards. Test cases demonstrate security measures for patient data, validation of medical device functionality, and proper audit trail mechanisms. Minor gaps identified in edge case coverage for data breach scenarios.',
-        recommendations: [
-          'Implement additional test scenarios for data breach detection and response procedures',
-          'Expand test coverage for emergency access protocols during system failures',
-          'Include specific tests for medical device interoperability compliance'
-        ]
-      };
-    }
-    
-    const text = response.text();
-    
+    const result = await model.invoke(messages);
+
+    const text = result?.content?.toString() || '';
+
     if (!text || text.trim().length === 0) {
       console.warn('Empty response received from AI model during compliance check, returning mock data');
       return {
@@ -141,6 +127,9 @@ Recommendations:
       }
     }
 
+    // Clean up formatting for better display
+    report = cleanForDisplay(report);
+    
     return {
       report,
       recommendations
@@ -158,7 +147,7 @@ Recommendations:
     // Return mock compliance report as a fallback - this prevents server component crashes
     // and allows the UI to continue working even if the AI API is temporarily unavailable
     return {
-      report: 'Comprehensive compliance analysis indicates adherence to FDA, ISO 13485, GDPR, and HIPAA standards. Test cases demonstrate security measures for patient data, validation of medical device functionality, and proper audit trail mechanisms. Minor gaps identified in edge case coverage for data breach scenarios.',
+      report: cleanForDisplay('Comprehensive compliance analysis indicates adherence to FDA, ISO 13485, GDPR, and HIPAA standards. Test cases demonstrate security measures for patient data, validation of medical device functionality, and proper audit trail mechanisms. Minor gaps identified in edge case coverage for data breach scenarios.'),
       recommendations: [
         'Implement additional test scenarios for data breach detection and response procedures',
         'Expand test coverage for emergency access protocols during system failures',

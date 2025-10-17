@@ -163,7 +163,7 @@ Example format:
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap rounded-md border bg-muted/50 p-4 font-mono text-sm">
+            <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line rounded-md border bg-muted/50 p-4">
                 {report}
             </div>
           </CardContent>
