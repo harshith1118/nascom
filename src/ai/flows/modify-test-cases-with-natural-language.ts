@@ -78,7 +78,6 @@ export async function modifyTestCasesWithNaturalLanguage(
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: "gemini-2.5-flash",
-      timeout: 30000, // 30 second timeout
     });
 
     const prompt = `You are an expert QA engineer. Modify the following test cases based on the provided natural language instructions.

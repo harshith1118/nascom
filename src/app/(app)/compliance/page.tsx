@@ -40,20 +40,41 @@ export default function CompliancePage() {
     setIsLoading(true);
     setReport(null);
     try {
+      // Validate that values exist before processing
+      if (!values || !values.testCases || !values.standards) {
+        throw new Error('Invalid form values. Please ensure all fields are filled out correctly.');
+      }
+      
       const result = await checkCompliance({
         testCases: values.testCases,
-        standards: values.standards.split(',').map(s => s.trim()),
+        standards: values.standards.split(',').map(s => s.trim()).filter(s => s.length > 0), // Filter out empty standards
       });
 
-      if (!result || !result.report) {
-        throw new Error("The AI failed to generate a compliance report. Please try again.");
+      // Display the report even if it's a mock response
+      if (result && typeof result.report === 'string' && result.report.length > 0) {
+        setReport(result.report);
+        
+        // Check if this is a mock response to inform the user appropriately
+        if (result.report.includes('Comprehensive compliance analysis indicates adherence')) {
+          toast({
+            title: 'Compliance Check Complete (Mock Data)',
+            description: 'A mock compliance report was generated. This may be due to API configuration issues.',
+          });
+        } else {
+          toast({
+            title: 'Compliance Check Complete',
+            description: 'The compliance report has been generated below.',
+          });
+        }
+      } else {
+        // Even if result doesn't have expected structure, try to display any available data
+        setReport('No report was generated. Please try again.');
+        toast({
+          variant: 'destructive',
+          title: 'Check Failed',
+          description: 'The compliance check did not return a valid report.',
+        });
       }
-
-      setReport(result.report);
-      toast({
-        title: 'Compliance Check Complete',
-        description: 'The compliance report has been generated below.',
-      });
     } catch (error) {
       console.error('Failed to check compliance:', error);
       let errorMessage = 'An unknown error occurred.';
@@ -66,7 +87,7 @@ export default function CompliancePage() {
       toast({
         variant: 'destructive',
         title: 'Check Failed',
-        description: errorMessage,
+        description: errorMessage || 'An unknown error occurred during compliance checking.',
       });
     } finally {
       setIsLoading(false);

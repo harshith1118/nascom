@@ -43,7 +43,6 @@ export async function generateTestCasesFromRequirements(
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: "gemini-2.5-flash",
-      timeout: 30000, // 30 second timeout
     });
 
     const prompt = `You are an expert QA engineer specializing in healthcare software testing. Your task is to analyze the provided software requirements and generate exactly 3 comprehensive test cases in the specified format.
