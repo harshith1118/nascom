@@ -21,6 +21,29 @@ export async function exportToAzureDevOps(testCases: TestCase[], azureConfig: Az
   for (const testCase of testCases) {
     try {
       // Format the test case data for Azure DevOps work item
+      let description = `<p>${testCase.description}</p>`;
+      
+      description += `<h3>Test Steps</h3><ol>`;
+      testCase.testSteps.forEach(step => {
+        description += `<li>${step}</li>`;
+      });
+      description += `</ol>`;
+      
+      description += `<h3>Expected Results</h3><p>${testCase.expectedResults}</p>`;
+      
+      // Add traceability information if available
+      if (testCase.requirementsTrace && testCase.requirementsTrace !== 'N/A' && testCase.requirementsTrace !== '') {
+        description += `<h3>Requirements Trace</h3><p>${testCase.requirementsTrace}</p>`;
+      }
+      
+      // Add version and timestamp information
+      description += `<h3>Metadata</h3>`;
+      description += `<ul>`;
+      description += `<li><strong>Version:</strong> ${testCase.version}</li>`;
+      description += `<li><strong>Created:</strong> ${new Date(testCase.createdAt).toLocaleString()}</li>`;
+      description += `<li><strong>Updated:</strong> ${new Date(testCase.updatedAt).toLocaleString()}</li>`;
+      description += `</ul>`;
+      
       const workItem = [
         {
           op: "add",
@@ -30,11 +53,7 @@ export async function exportToAzureDevOps(testCases: TestCase[], azureConfig: Az
         {
           op: "add",
           path: "/fields/System.Description",
-          value: `<p>${testCase.description}</p>
-                  <h3>Test Steps</h3>
-                  <ol>${testCase.testSteps.map(step => `<li>${step}</li>`).join('')}</ol>
-                  <h3>Expected Results</h3>
-                  <p>${testCase.expectedResults}</p>`
+          value: description
         },
         {
           op: "add",

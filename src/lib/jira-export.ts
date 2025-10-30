@@ -24,12 +24,31 @@ export async function exportToJira(testCases: TestCase[], jiraConfig: JiraConfig
       // Format the test case data for Jira
       // For Jira Service Desk, the API might require different handling based on issue type
       // Since the previous approach failed, we'll try the basic approach with more specific error handling
+      let description = testCase.description;
+      
+      description += "\n\n*Test Steps:*";
+      testCase.testSteps.forEach((step, i) => {
+        description += `\n${i+1}. ${step}`;
+      });
+      
+      description += `\n\n*Expected Results:*\n${testCase.expectedResults}`;
+      
+      // Add traceability information if available
+      if (testCase.requirementsTrace && testCase.requirementsTrace !== 'N/A' && testCase.requirementsTrace !== '') {
+        description += `\n\n*Requirements Trace:*\n${testCase.requirementsTrace}`;
+      }
+      
+      // Add version and timestamp information
+      description += `\n\n*Version: ${testCase.version}*`;
+      description += `\n*Created: ${new Date(testCase.createdAt).toLocaleString()}*`;
+      description += `\n*Updated: ${new Date(testCase.updatedAt).toLocaleString()}*`;
+      
       const fields = {
         project: {
           key: projectKey
         },
         summary: testCase.title,
-        description: testCase.description + "\n\nTest Steps:\n" + testCase.testSteps.map((step, i) => `${i+1}. ${step}`).join("\n") + "\n\nExpected Results:\n" + testCase.expectedResults,
+        description: description,
         priority: {
           name: testCase.priority === "High" ? "High" : testCase.priority === "Medium" ? "Medium" : "Low"
         }

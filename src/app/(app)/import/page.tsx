@@ -23,6 +23,8 @@ const formSchema = z.object({
 
 export default function ImportPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [showTextArea, setShowTextArea] = useState(true);
+  const [fileName, setFileName] = useState<string | null>(null);
   const router = useRouter();
   const { setTestCases, setComplianceReport } = useTestCases();
   const { toast } = useToast();
@@ -33,6 +35,29 @@ export default function ImportPage() {
       testCases: '',
     },
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFileName(file.name);
+      
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const content = event.target?.result as string;
+        form.setValue('testCases', content, { shouldValidate: true });
+      };
+      reader.onerror = () => {
+        toast({
+          variant: 'destructive',
+          title: 'File Read Error',
+          description: 'Could not read the selected file.',
+        });
+        setFileName(null);
+        form.setValue('testCases', '', { shouldValidate: true });
+      };
+      reader.readAsText(file);
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
@@ -84,6 +109,27 @@ export default function ImportPage() {
             </Alert>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <div className="flex flex-wrap gap-2 mb-4">
+                <Button 
+                  variant={showTextArea ? "default" : "outline"} 
+                  type="button"
+                  onClick={() => setShowTextArea(true)}
+                  disabled={isLoading}
+                >
+                  <FileUp className="mr-2 h-4 w-4" />
+                  Paste Content
+                </Button>
+                <Button 
+                  variant={showTextArea ? "outline" : "default"} 
+                  type="button"
+                  onClick={() => setShowTextArea(false)}
+                  disabled={isLoading}
+                >
+                  <FileUp className="mr-2 h-4 w-4" />
+                  Upload File
+                </Button>
+              </div>
+
               <FormField
                 control={form.control}
                 name="testCases"
@@ -91,8 +137,9 @@ export default function ImportPage() {
                   <FormItem>
                     <FormLabel>Test Cases to Import</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder={`Paste your test cases here...
+                      {showTextArea ? (
+                        <Textarea
+                          placeholder={`Paste your test cases here...
 
 Example format:
 ### Case ID: TC-001
@@ -104,9 +151,39 @@ Example format:
 3. Click login button
 **Expected Results:** User is successfully logged in
 **Priority:** High`}
-                        className="min-h-[300px] resize-y"
-                        {...field}
-                      />
+                          className="min-h-[300px] resize-y"
+                          {...field}
+                        />
+                      ) : (
+                        <div className="relative">
+                          <input
+                            id="file-upload"
+                            type="file"
+                            accept=".txt,.md,.csv,.json"
+                            className="hidden"
+                            onChange={handleFileChange}
+                            disabled={isLoading}
+                          />
+                          <label
+                            htmlFor="file-upload"
+                            className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
+                          >
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                              <FileUp className="w-10 h-10 mb-3 text-muted-foreground" />
+                              {fileName ? (
+                                <p className="font-semibold text-primary">{fileName}</p>
+                              ) : (
+                                <>
+                                  <p className="mb-2 text-sm text-muted-foreground">
+                                    <span className="font-semibold">Click to upload</span> or drag and drop
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">TXT, MD, CSV, or JSON files</p>
+                                </>
+                              )}
+                            </div>
+                          </label>
+                        </div>
+                      )}
                     </FormControl>
                     <FormMessage />
                   </FormItem>

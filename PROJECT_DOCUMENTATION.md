@@ -29,10 +29,10 @@ MediTestAI is an AI-powered system that automates the generation of test cases f
 ## Technology Stack
 
 - **Frontend**: Next.js 15 with React Server Components
-- **AI Engine**: Google Gemini through Genkit framework
+- **AI Engine**: Google Gemini through LangChain
 - **UI Components**: Tailwind CSS, Radix UI, Shadcn UI
 - **State Management**: React Context API
-- **Backend**: Next.js API routes with Genkit server actions
+- **Backend**: Next.js API routes with LangChain-based server actions
 - **Deployment**: Firebase hosting compatible
 
 ## Project Structure
@@ -41,8 +41,7 @@ MediTestAI is an AI-powered system that automates the generation of test cases f
 src/
 ├── ai/                 # AI flows and configurations
 │   ├── flows/          # Individual AI capabilities
-│   ├── dev.ts          # Development server setup
-│   └── genkit.ts       # Genkit configuration
+│   └── dev.ts          # Development server setup
 ├── app/                # Next.js app router structure
 │   ├── (app)/          # Main application pages
 │   │   ├── dashboard/   # Dashboard home page
@@ -83,9 +82,9 @@ src/
 
 ## AI Implementation
 
-The system uses Google's Gemini AI through the Genkit framework:
+The system uses Google's Gemini AI through the LangChain framework:
 
-1. **Model**: `googleai/gemini-2.5-flash`
+1. **Model**: `gemini-2.5-flash` via LangChain
 2. **Flows**:
    - `generateTestCasesFromRequirementsFlow`
    - `complianceCheckTestCasesFlow`
@@ -130,8 +129,8 @@ These features will be available in the full production version.
 
 3. **Start Development Servers**:
    ```bash
-   # Start Genkit AI server
-   npm run genkit:dev
+   # Start development server
+   npm run dev
    
    # In a separate terminal, start Next.js frontend
    npm run dev

@@ -88,7 +88,16 @@ ${testCases}
 Modification Instructions:
 ${modificationInstructions}
 
-Modified Test Cases:`;
+Modified Test Cases:
+
+IMPORTANT FORMAT REQUIREMENTS:
+- Follow the exact test case format with sections: "### Case ID:", "**Title:**", "**Description:**", "**Test Steps:**", "**Expected Results:**", "**Priority:**", "**Requirements Trace:**"
+- DO NOT repeat the test case structure inside field values (e.g., don't include "Title:", "Description:", "Expected Results:" inside the content of these fields)
+- Each field should only contain its specific content, not the entire test case format
+- Ensure "Expected Results:" section is complete and specific
+- Keep the same Case ID unless specifically instructed to change it
+- Maintain the "---" separator between test cases`;
+
 
     // Create messages for the model
     const messages = [

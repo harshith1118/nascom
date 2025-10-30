@@ -14,7 +14,6 @@ We've recently made significant improvements to the test case generation reliabi
 - Improved error handling and user feedback
 - Better parsing of AI responses
 - More robust validation of generated test cases
-- **NEW**: Integration with LangChain for AI operations
 - **NEW**: Improved text formatting with markdown cleaning utilities
 - **NEW**: Enhanced test case parsing with better format handling
 - **NEW**: AI-powered test case modification with natural language
@@ -65,7 +64,6 @@ This project can be deployed to Netlify. To enable full AI functionality, set th
 - **NEW**: Export to Jira with configurable issue types
 - **NEW**: Export to Azure DevOps with configurable work item types  
 - **NEW**: Multiple format download (PDF, Excel, Word, JSON, Text, Markdown)
-- **NEW**: LangChain-powered AI operations
 - **NEW**: Enhanced text formatting and parsing
 
 ## Integration Guides
@@ -95,12 +93,6 @@ The download feature supports multiple formats:
 - Text/Markdown: For plain text formats
 
 ## Architecture Changes
-
-### LangChain Integration
-- Replaced direct Google AI API calls with LangChain's ChatGoogleGenerativeAI
-- Improved timeout handling with 30-second default
-- Better error handling and fallback mechanisms
-- More consistent API interaction patterns
 
 ### Text Formatting
 - Added markdown cleaning utility to remove formatting artifacts

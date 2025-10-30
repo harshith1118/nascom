@@ -31,6 +31,9 @@ export default function GeneratePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [showTextArea, setShowTextArea] = useState(false);
+  const [includeCodeContext, setIncludeCodeContext] = useState(false);
+  const [codeContext, setCodeContext] = useState('');
+  const [codeFileName, setCodeFileName] = useState<string | null>(null);
   const router = useRouter();
   const { setTestCases, setComplianceReport } = useTestCases();
   const { toast } = useToast();
@@ -42,25 +45,28 @@ export default function GeneratePage() {
     },
   });
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setFileName(file.name);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        form.setValue('requirements', text, { shouldValidate: true });
-      };
-      reader.onerror = () => {
+      
+      try {
+        // Process the file based on its type
+        const content = await import('@/lib/file-processor').then(
+          ({ processFile }) => processFile(file)
+        );
+        
+        form.setValue('requirements', content, { shouldValidate: true });
+      } catch (error) {
+        console.error('File processing error:', error);
         toast({
           variant: 'destructive',
-          title: 'File Read Error',
-          description: 'Could not read the selected file.',
+          title: 'File Processing Error',
+          description: error instanceof Error ? error.message : 'Could not process the selected file.',
         });
         setFileName(null);
         form.setValue('requirements', '', { shouldValidate: true });
-      };
-      reader.readAsText(file);
+      }
     }
   };
 
@@ -94,6 +100,35 @@ export default function GeneratePage() {
     }
   };
 
+  const handleCodeFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCodeFileName(file.name);
+      
+      try {
+        // Process the code file
+        const content = await import('@/lib/file-processor').then(
+          ({ processFile }) => processFile(file)
+        );
+        
+        setCodeContext(content);
+        toast({
+          title: 'Code file loaded',
+          description: `Loaded: ${file.name}`,
+        });
+      } catch (error) {
+        console.error('Code file processing error:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Code File Processing Error',
+          description: error instanceof Error ? error.message : 'Could not process the selected code file.',
+        });
+        setCodeFileName(null);
+        setCodeContext('');
+      }
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
@@ -103,7 +138,13 @@ export default function GeneratePage() {
         description: 'AI is analyzing your requirements. This may take 10-30 seconds...',
       });
       
-      const result = await generateTests({ productRequirementDocument: values.requirements });
+      const generateInput = {
+        productRequirementDocument: values.requirements,
+        sourceCodeContext: includeCodeContext ? codeContext : undefined,
+        requirementsTrace: values.requirements.substring(0, 200) + (values.requirements.length > 200 ? '...' : '') // First 200 chars as trace
+      };
+      
+      const result = await generateTests(generateInput);
       
       if (!result) {
         throw new Error("The AI service returned an empty response. Please try again.");
@@ -198,7 +239,7 @@ export default function GeneratePage() {
                           id="file-upload"
                           type="file"
                           className="hidden"
-                          accept=".pdf,.md,.txt"
+                          accept=".pdf,.md,.txt,.doc,.docx,.xml"
                           onChange={handleFileChange}
                           disabled={isLoading}
                         />
@@ -215,7 +256,7 @@ export default function GeneratePage() {
                                 <p className="mb-2 text-sm text-muted-foreground">
                                   <span className="font-semibold">Click to upload</span> or drag and drop
                                 </p>
-                                <p className="text-xs text-muted-foreground">PDF, MD, or TXT files</p>
+                                <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, MD, TXT, or XML files</p>
                               </>
                             )}
                           </div>
@@ -256,6 +297,62 @@ All login attempts should be logged for security auditing.`}
                 </FormItem>
               )}
             />
+            
+            {/* Code Context Section */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="include-code-context"
+                  checked={includeCodeContext}
+                  onChange={(e) => setIncludeCodeContext(e.target.checked)}
+                  disabled={isLoading}
+                />
+                <label htmlFor="include-code-context" className="text-sm font-medium">
+                  Include Source Code Context
+                </label>
+              </div>
+              
+              {includeCodeContext && (
+                <div className="border rounded-lg p-4 bg-muted/20">
+                  <h4 className="font-medium mb-2">Upload Source Code Files</h4>
+                  <div className="relative">
+                    <Input
+                      id="code-upload"
+                      type="file"
+                      className="hidden"
+                      accept=".ts,.tsx,.js,.jsx,.py,.java,.cpp,.c,.h,.cs,.go,.rs,.rb,.php,.sql,.html,.css,.json,.xml"
+                      onChange={handleCodeFileChange}
+                      disabled={isLoading}
+                    />
+                    <label
+                      htmlFor="code-upload"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
+                    >
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                        {codeFileName ? (
+                          <p className="font-semibold text-primary text-sm">{codeFileName}</p>
+                        ) : (
+                          <>
+                            <p className="mb-1 text-sm text-muted-foreground">
+                              <span className="font-semibold">Click to upload</span> source code
+                            </p>
+                            <p className="text-xs text-muted-foreground">Supported: TS, JS, PY, Java, C++, C#, Go, Ruby, PHP, SQL, HTML, CSS</p>
+                          </>
+                        )}
+                      </div>
+                    </label>
+                    {codeContext && (
+                      <div className="mt-2 p-2 bg-muted rounded text-xs max-h-32 overflow-y-auto">
+                        {codeContext.substring(0, 200)}...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <Button type="submit" disabled={isLoading || !form.formState.isValid} size="lg">
               {isLoading ? (
                 <>

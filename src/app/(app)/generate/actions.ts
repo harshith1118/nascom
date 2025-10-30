@@ -7,8 +7,10 @@ export async function generateTests(input: GenerateTestCasesFromRequirementsInpu
         console.log("Generating tests with input:", input);
         
         // Add basic validation before calling the flow
-        if (!input || !input.productRequirementDocument || input.productRequirementDocument.trim().length < 10) {
-            throw new Error("Product requirements must be provided and should be at least 10 characters long.");
+        if (!input || 
+            (!input.productRequirementDocument || input.productRequirementDocument.trim().length < 10) && 
+            (!input.sourceCodeContext || input.sourceCodeContext.trim().length < 10)) {
+            throw new Error("Either product requirements or source code context must be provided and should be at least 10 characters long.");
         }
         
         const output = await generateTestCasesFromRequirements(input);

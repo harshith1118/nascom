@@ -23,15 +23,15 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
     
     // Find all sections with flexible spacing
     // Match **Title:** followed by any content until the next section or end
-    const titleMatch = block.match(/\*\*Title:\*\*[ \t]*([^\n\r]+)/i);
+    const titleMatch = block.match(/\*\*Title:\*\*[ \t]*([^\0]*?)(?=\n\*\*(?:Description|Test Steps|Expected Results|Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
     // Match **Description:** followed by any content until next section
-    const descriptionMatch = block.match(/\*\*Description:\*\*([^\n\r]*)/i);
+    const descriptionMatch = block.match(/\*\*Description:\*\*([^\0]*?)(?=\n\*\*(?:Test Steps|Expected Results|Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
     // Match **Test Steps:** section with flexible spacing
-    const stepsMatch = block.match(/\*\*Test Steps:\*\*([^\0]*?)(?=\n\*\*(?:Expected Results|Priority):\*\*|\n###|$)/i);
-    // Match **Expected Results:** section
-    const expectedResultsMatch = block.match(/\*\*Expected Results:\*\*([^\n\r]+)/i);
+    const stepsMatch = block.match(/\*\*Test Steps:\*\*([^\0]*?)(?=\n\*\*(?:Expected Results|Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
+    // Match **Expected Results:** section - capture multiple lines until next field
+    const expectedResultsMatch = block.match(/\*\*Expected Results:\*\*([^\0]*?)(?=\n\*\*(?:Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
     // Match **Priority:** section
-    const priorityMatch = block.match(/\*\*Priority:\*\*([^\n\r]+)/i);
+    const priorityMatch = block.match(/\*\*Priority:\*\*([^\0]*?)(?=\n\*\*(?:Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
 
     // If no Case ID, Title, or Test Steps found, this might not be a valid test case block
     if (!caseIdMatch && !titleMatch && !stepsMatch) {
@@ -50,11 +50,21 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
           const step = trimmedLine.replace(/^\d+\.\s*/, '').trim();
           if (step.length > 0 && 
               !step.includes('**Expected Results:**') && 
-              !step.includes('**Priority:**')) {
+              !step.includes('**Priority:**') &&
+              !step.includes('**Requirements Trace:**')) {
             testSteps.push(step);
           }
         }
       }
+    }
+    
+    // Try to find requirements trace - updated to support multi-line if needed
+    const requirementsTraceMatch = block.match(/\*\*Requirements Trace:\*\*([^\0]*?)(?=\n\*\*(?:Created|Updated|Version):\*\*|\n###|$)/i);
+    let requirementsTrace = undefined;
+    if (requirementsTraceMatch) {
+      requirementsTrace = requirementsTraceMatch[1].trim();
+      // Remove any remaining field markers that might have been captured in the content
+      requirementsTrace = requirementsTrace.replace(/\*\*(?:Created|Updated|Version):\*\*.*$/i, '').trim();
     }
 
     // Only create a test case if we have content
@@ -63,14 +73,65 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
       return; // Skip if it's an untitled case with no steps
     }
 
+    // Clean up expected results by removing any potential field markers from within the content
+    let expectedResults = '';
+    if (expectedResultsMatch) {
+      expectedResults = expectedResultsMatch[1].trim();
+      // Remove any remaining field markers that might have been captured in the content
+      expectedResults = expectedResults.replace(/\*\*(?:Priority|Requirements Trace|Created|Updated|Version):\*\*.*$/i, '').trim();
+      
+      // Additional cleanup: If expected results contain test case structure, extract just the content
+      if (expectedResults.includes('### Case ID:') || expectedResults.includes('**Title:**') || expectedResults.includes('**Description:**')) {
+        // This suggests the AI included multiple test cases in one, so we just take content before the next case ID
+        const nextCaseIndex = expectedResults.indexOf('### Case ID:');
+        if (nextCaseIndex !== -1) {
+          expectedResults = expectedResults.substring(0, nextCaseIndex).trim();
+        }
+      }
+    }
+    
+    // Clean up title if it contains test case structure
+    let cleanedTitle = title;
+    if (cleanedTitle.includes('### Case ID:') || cleanedTitle.includes('**Description:**')) {
+      // If title contains other fields, take only the first part
+      const descIndex = cleanedTitle.indexOf('**Description:**');
+      if (descIndex !== -1) {
+        cleanedTitle = cleanedTitle.substring(0, descIndex).trim();
+      } else {
+        const caseIdIndex = cleanedTitle.indexOf('### Case ID:');
+        if (caseIdIndex !== -1) {
+          cleanedTitle = cleanedTitle.substring(0, caseIdIndex).trim();
+        }
+      }
+    }
+    
+    // Clean up description if it contains test case structure
+    let description = descriptionMatch ? descriptionMatch[1].trim() : '';
+    if (description.includes('### Case ID:') || description.includes('**Test Steps:**')) {
+      // If description contains other fields, take only the first part
+      const stepsIndex = description.indexOf('**Test Steps:**');
+      if (stepsIndex !== -1) {
+        description = description.substring(0, stepsIndex).trim();
+      } else {
+        const caseIdIndex = description.indexOf('### Case ID:');
+        if (caseIdIndex !== -1) {
+          description = description.substring(0, caseIdIndex).trim();
+        }
+      }
+    }
+
     testCases.push({
       id: `tc-${Date.now()}-${index}`,
       caseId: caseIdMatch ? caseIdMatch[1].trim() : `TC-${String(index + 1).padStart(3, '0')}`,
-      title: title,
-      description: descriptionMatch ? descriptionMatch[1].trim() : '',
+      title: cleanedTitle,
+      description: description,
       testSteps: testSteps,
-      expectedResults: expectedResultsMatch ? expectedResultsMatch[1].trim() : '',
+      expectedResults: expectedResults,
       priority: priorityMatch ? priorityMatch[1].trim() : 'Medium',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: 1,
+      requirementsTrace,
     });
   });
 
@@ -85,6 +146,10 @@ export function testCaseToMarkdown(testCase: TestCase): string {
 ${testCase.testSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
 **Expected Results:** ${testCase.expectedResults}
 **Priority:** ${testCase.priority}
+**Requirements Trace:** ${testCase.requirementsTrace || 'N/A'}
+**Created:** ${testCase.createdAt}
+**Updated:** ${testCase.updatedAt}
+**Version:** ${testCase.version}
 `;
 }
 

@@ -13,8 +13,8 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Logo } from "@/components/Logo"
-import { Home, Bot, ShieldCheck, FileUp, FolderKanban, Settings, LogOut } from "lucide-react"
-import { usePathname } from "next/navigation"
+import { Home, Bot, ShieldCheck, FileUp, FolderKanban, LogOut, Link2 } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { useUser } from "@/contexts/UserContext"
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -33,10 +34,13 @@ const navItems = [
   { href: "/compliance", icon: ShieldCheck, label: "Compliance Check" },
   { href: "/manage", icon: FolderKanban, label: "Manage Tests" },
   { href: "/import", icon: FileUp, label: "Import Tests" },
+  { href: "/traceability", icon: Link2, label: "Traceability Matrix" },
 ]
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const { currentUser, logout } = useUser()
 
   return (
     <SidebarProvider>
@@ -74,12 +78,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Button variant="ghost" className="justify-start w-full p-3 h-auto rounded-xl transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground shadow-sm hover:shadow-md">
                    <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10 ring-2 ring-primary/10">
-                        <AvatarImage src="https://picsum.photos/seed/user/40/40" />
-                        <AvatarFallback className="bg-primary/10 text-primary font-medium">QA</AvatarFallback>
+                        <AvatarImage src={currentUser?.avatar || "https://picsum.photos/seed/user/40/40"} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                          {currentUser ? currentUser.name.charAt(0).toUpperCase() : 'QA'}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="text-left hidden group-data-[state=expanded]:block">
-                        <p className="text-sm font-medium">QA Team</p>
-                        <p className="text-xs text-muted-foreground">qa@nascom.com</p>
+                        <p className="text-sm font-medium">
+                          {currentUser ? currentUser.name : 'QA Team'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {currentUser ? currentUser.email : 'qa@nascom.com'}
+                        </p>
                       </div>
                    </div>
                 </Button>
@@ -87,19 +97,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <DropdownMenuContent className="w-56 mb-2" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">QA Team</p>
+                    <p className="text-sm font-medium leading-none">
+                      {currentUser ? currentUser.name : 'QA Team'}
+                    </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      qa@nascom.com
+                      {currentUser ? currentUser.email : 'qa@nascom.com'}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={async () => {
+                  try {
+                    await logout();
+                    router.push('/login');
+                  } catch (error) {
+                    console.error('Logout error:', error);
+                    router.push('/login');
+                  }
+                }}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
