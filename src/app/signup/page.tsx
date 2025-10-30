@@ -53,7 +53,17 @@ export default function SignupPage() {
       let errorMessage = 'An error occurred during signup';
       
       if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'This email is already registered. Please use a different email or log in instead.';
+        errorMessage = 'This email is already registered. Redirecting to login...';
+        toast({
+          variant: 'destructive',
+          title: 'Email Already Registered',
+          description: errorMessage,
+        });
+        // Redirect to login after a short delay
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
+        return;
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'Please enter a valid email address.';
       } else if (error.code === 'auth/weak-password') {
@@ -148,6 +158,10 @@ export default function SignupPage() {
             >
               Sign in
             </Button>
+          </div>
+          
+          <div className="mt-2 text-center text-xs text-muted-foreground">
+            <p>Existing users will be automatically redirected to login</p>
           </div>
         </CardContent>
       </Card>

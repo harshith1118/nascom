@@ -32,14 +32,27 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
-      let errorMessage = 'Invalid credentials';
+      let errorMessage = 'Invalid email or password. Please try again.';
       
+      // Handle specific Firebase error codes
       if (error.code === 'auth/user-not-found') {
-        errorMessage = 'No account found with this email. Please check your email or sign up.';
+        errorMessage = 'No account found with this email. Redirecting to signup...';
+        toast({
+          variant: 'destructive',
+          title: 'Account Not Found',
+          description: errorMessage,
+        });
+        // Redirect to signup after a short delay
+        setTimeout(() => {
+          router.push('/signup');
+        }, 2000);
+        return;
       } else if (error.code === 'auth/wrong-password') {
         errorMessage = 'Incorrect password. Please try again.';
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'Please enter a valid email address.';
+      } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/invalid-login-credentials') {
+        errorMessage = 'Invalid email or password. Please check your credentials and try again.';
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -115,6 +128,16 @@ export default function LoginPage() {
             >
               Sign up
             </Button>
+          </div>
+          
+          <div className="mt-2 text-center text-xs text-muted-foreground">
+            <p>New users will be automatically redirected to signup</p>
+          </div>
+          
+          <div className="mt-4 text-center text-sm">
+            <Link href="/forgot-password" className="text-primary hover:underline">
+              Forgot password?
+            </Link>
           </div>
         </CardContent>
       </Card>

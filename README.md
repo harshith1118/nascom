@@ -4,21 +4,42 @@ This is a Next.js application that automates test case generation for healthcare
 
 ## Overview
 
-MediTestAI is an AI-powered system that automatically converts healthcare software requirements into compliant, traceable test cases integrated with enterprise toolchains.
+MediTestAI is an AI-powered system that automatically converts healthcare software requirements into compliant, traceable test cases integrated with enterprise toolchains. The system supports full authentication, cloud storage, and enterprise-grade security.
 
 ## Recent Improvements
 
-We've recently made significant improvements to the test case generation reliability:
+We've recently made significant improvements to make this a complete production-ready system:
 
-- Enhanced AI prompts for more consistent output
-- Improved error handling and user feedback
-- Better parsing of AI responses
-- More robust validation of generated test cases
-- **NEW**: Improved text formatting with markdown cleaning utilities
-- **NEW**: Enhanced test case parsing with better format handling
-- **NEW**: AI-powered test case modification with natural language
-- **NEW**: Export functionality to Jira and Azure DevOps
-- **NEW**: Multiple format download capabilities (PDF, Excel, Word, JSON, Text, Markdown)
+### ✅ **Complete Authentication System**
+- **Login/Signup Pages** - Full Firebase Authentication with email/password
+- **User Management** - Real user profiles with name, email, role
+- **Session Management** - Persistent login across sessions
+- **Forgot Password** - Password reset functionality
+- **Logout** - Secure sign-out with redirect
+
+### ✅ **Cloud Storage Integration**
+- **Firebase Authentication** - Secure user management
+- **Firestore Database** - All data stored in cloud database
+- **Real-time Sync** - Data synced across devices
+- **User Isolation** - Each user sees only their own data
+
+### ✅ **Enhanced Test Case Generation**
+- **AI-powered test case generation** from requirements
+- **Healthcare compliance checking** (FDA, ISO 13485, GDPR, HIPAA, IEC 62304)
+- **No-code interface** for test case management
+- **Test case modification** with natural language
+- **Import/export capabilities**
+
+### ✅ **Enterprise Integrations**
+- **Export to Jira** with configurable issue types
+- **Export to Azure DevOps** with configurable work item types  
+- **Multiple format download** (PDF, Excel, Word, JSON, Text, Markdown)
+
+### ✅ **Advanced Features**
+- **Traceability Matrix** - Link test cases to original requirements
+- **Versioning & Timestamps** - Track changes over time
+- **Human-in-the-Loop** - Feedback mechanism for continuous improvement
+- **Compliance Reports** - Detailed healthcare standards analysis
 
 ## Quick Start
 
@@ -29,16 +50,21 @@ We've recently made significant improvements to the test case generation reliabi
    ```
 
 2. Set up environment variables:
-   Create a `.env` file with your Google AI API key:
+   Create a `.env` file with your Google AI API key and Firebase credentials:
 
    ```
    GOOGLE_API_KEY=your_google_ai_api_key_here
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
    ```
 
 3. Start the development servers:
 
    ```bash
-
    # Terminal : Start Next.js frontend
    npm run dev
    ```
@@ -49,22 +75,68 @@ We've recently made significant improvements to the test case generation reliabi
 
 ### Netlify
 
-This project can be deployed to Netlify. To enable full AI functionality, set the environment variable in your Netlify dashboard:
+This project can be deployed to Netlify. To enable full functionality, set the environment variables in your Netlify dashboard:
 
 1. Go to **Site settings** → **Build & deploy** → **Environment**
-2. Add the environment variable: `GOOGLE_API_KEY=your_google_ai_api_key_here`
+2. Add all the required environment variables:
+   ```
+   GOOGLE_API_KEY=your_google_ai_api_key_here
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_firebase_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_firebase_app_id
+   ```
+
+## User Flow
+
+1. **Visitor opens app** → Redirected to `/signup`
+2. **New user signs up** → Creates account in Firebase Auth + Firestore
+3. **User logs in** → Authenticates with Firebase, loads data from Firestore
+4. **User generates test cases** → AI processes requirements, saves to Firestore
+5. **User exports data** → Exports to Jira, Azure DevOps, or downloads files
+6. **User logs out** → Signs out of Firebase, redirected to login
 
 ## Features
 
-- AI-powered test case generation from requirements
-- Healthcare compliance checking (FDA, ISO 13485, GDPR)
-- No-code interface for test case management
-- Test case modification with natural language
-- Import/export capabilities
-- **NEW**: Export to Jira with configurable issue types
-- **NEW**: Export to Azure DevOps with configurable work item types  
-- **NEW**: Multiple format download (PDF, Excel, Word, JSON, Text, Markdown)
-- **NEW**: Enhanced text formatting and parsing
+### 🔐 **Authentication & User Management**
+- Secure user registration and login
+- Password reset functionality
+- User profile management
+- Role-based access control
+- Session persistence
+
+### 🧠 **AI-Powered Test Case Generation**
+- Generate comprehensive test cases from software requirements
+- Support for various input formats (PDF, Word, XML, text)
+- Natural language test case modification
+- Healthcare compliance verification
+- Source code context analysis
+
+### 📊 **Test Case Management**
+- Create, read, update, delete test cases
+- Version control with timestamps
+- Priority management (High, Medium, Low)
+- Requirements traceability
+- Test case feedback system
+
+### 🔄 **Enterprise Integrations**
+- **Jira Integration**: Export test cases with configurable issue types
+- **Azure DevOps Integration**: Export to work items with custom types
+- **Multiple Format Downloads**: PDF, Excel, Word, JSON, Text, Markdown
+
+### 📈 **Advanced Analytics**
+- **Traceability Matrix**: Map test cases to requirements
+- **Compliance Reports**: Detailed healthcare standards analysis
+- **Dashboard**: Overview of test case metrics and progress
+- **Activity Tracking**: Recent actions and modifications
+
+### 🛠 **Developer Features**
+- **Human-in-the-Loop**: Feedback mechanism for AI improvement
+- **API Routes**: RESTful endpoints for external integrations
+- **Cloud Storage**: Firebase Firestore for data persistence
+- **Responsive Design**: Works on desktop and mobile devices
 
 ## Integration Guides
 
@@ -92,17 +164,27 @@ The download feature supports multiple formats:
 - JSON: For data interchange
 - Text/Markdown: For plain text formats
 
-## Architecture Changes
+## Architecture
 
-### Text Formatting
-- Added markdown cleaning utility to remove formatting artifacts
-- Improved display of compliance reports and test cases
-- Better handling of inconsistent spacing in inputs
+### Frontend
+- **Next.js 15** with App Router
+- **React Server Components** for performance
+- **Tailwind CSS** for styling
+- **Shadcn UI** components
+- **Context API** for state management
 
-### Parsing Improvements
-- Enhanced regex patterns for more reliable test case extraction
-- Better handling of various input formats
-- Improved validation for missing or malformed sections
+### Backend
+- **Firebase Authentication** for user management
+- **Firestore Database** for data storage
+- **LangChain + Google Gemini** for AI processing
+- **RESTful API Routes** for server-side logic
+
+### Data Flow
+1. **User Authentication** → Firebase Auth
+2. **Data Storage** → Firestore Database
+3. **AI Processing** → Google Gemini via LangChain
+4. **Export Operations** → External APIs (Jira, Azure DevOps)
+5. **File Generation** → Client-side libraries (jsPDF, XLSX, etc.)
 
 ## Documentation
 
@@ -125,3 +207,7 @@ We welcome contributions! Please follow these steps:
 4. Commit your changes (`git commit -m 'Add some amazing feature'`)
 5. Push to the branch (`git push origin feature/amazing-feature`)
 6. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
