@@ -54,6 +54,7 @@ export async function checkCompliance(
       apiKey: process.env.GOOGLE_API_KEY,
       model: "gemini-2.5-flash",
       maxRetries: 2,  // Add retry capability
+      temperature: 0.2, // Lower temperature for more consistent outputs
     });
 
     const prompt = `You are an expert in healthcare software compliance. Analyze the following test cases and evaluate their compliance with the specified standards: ${standards.join(', ')}.

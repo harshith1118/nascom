@@ -75,6 +75,7 @@ export const TestCasesProvider = ({ children }: { children: ReactNode }) => {
         saveTestCasesToFirebase(testCases, currentUser.id).then(result => {
           if (!result.success) {
             console.error('Failed to save test cases to Firebase:', result.message);
+            // Don't show error to user for cloud saving failures, just log it
           }
         });
       }
