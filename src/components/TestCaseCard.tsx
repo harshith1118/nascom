@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { modifyTestCasesWithNaturalLanguage } from "@/ai/flows/modify-test-cases-with-natural-language"
-import { exportToJira } from "@/lib/jira-export"
+import { exportTestCaseToJira } from "@/app/(app)/actions/jira-actions"
 import { exportToAzureDevOps } from "@/lib/azure-export"
 import { downloadTestCase } from "@/lib/download-utils"
 
@@ -215,7 +215,7 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
 
     setIsExportingToJira(true);
     try {
-      const result = await exportToJira([testCase], jiraConfig);
+      const result = await exportTestCaseToJira(testCase, jiraConfig);
       
       toast({
         title: "Export successful",
@@ -228,7 +228,8 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
         baseUrl: "",
         email: "",
         apiToken: "",
-        projectKey: ""
+        projectKey: "",
+        issueType: "Task" // Keep the default issue type
       });
     } catch (error) {
       console.error('Failed to export to Jira:', error);
@@ -266,7 +267,8 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
       setAzureConfig({
         organization: "",
         project: "",
-        personalAccessToken: ""
+        personalAccessToken: "",
+        workItemType: "Task" // Keep the default work item type
       });
     } catch (error) {
       console.error('Failed to export to Azure DevOps:', error);
