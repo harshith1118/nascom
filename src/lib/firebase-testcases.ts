@@ -14,6 +14,18 @@ export interface FirebaseLoadResult {
   testCases?: TestCase[];
 }
 
+// Helper function to clean test case object for Firestore
+function cleanTestCaseForFirestore(testCase: TestCase) {
+  const cleaned: any = {};
+  for (const [key, value] of Object.entries(testCase)) {
+    // Don't include undefined values in the Firestore document
+    if (value !== undefined) {
+      cleaned[key] = value;
+    }
+  }
+  return cleaned;
+}
+
 // Save test cases to Firebase for the current user
 export async function saveTestCasesToFirebase(testCases: TestCase[], userId: string): Promise<FirebaseSaveResult> {
   try {
@@ -42,10 +54,10 @@ export async function saveTestCasesToFirebase(testCases: TestCase[], userId: str
     const deletePromises = existingTestCases.docs.map(doc => deleteDoc(doc.ref));
     await Promise.all(deletePromises);
 
-    // Add the new test cases
+    // Add the new test cases, filtering out undefined values
     const addPromises = testCases.map(testCase => 
       addDoc(collection(db, `users/${userId}/testCases`), {
-        ...testCase,
+        ...cleanTestCaseForFirestore(testCase),
         createdAt: testCase.createdAt ? new Date(testCase.createdAt) : new Date(),
         updatedAt: new Date(),
       })
@@ -81,11 +93,23 @@ export async function loadTestCasesFromFirebase(userId: string): Promise<Firebas
     const testCases: TestCase[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data();
+      // Ensure all required fields are present and handle potential undefined values
       testCases.push({
-        ...data,
-        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
-        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt,
-      } as TestCase);
+        id: data.id || doc.id, // Use document ID if not present in data
+        caseId: data.caseId || 'TC-' + Date.now().toString().slice(-6), // Generate default caseId if missing
+        title: data.title || 'Untitled Test Case',
+        description: data.description || '',
+        testSteps: Array.isArray(data.testSteps) ? data.testSteps : [],
+        expectedResults: data.expectedResults || '',
+        priority: data.priority || 'Medium',
+        createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt || new Date().toISOString(),
+        version: data.version || 1,
+        // Only include requirementsTrace if it exists and is not empty
+        ...(data.requirementsTrace !== undefined && data.requirementsTrace !== null && data.requirementsTrace !== '' && { requirementsTrace: data.requirementsTrace }),
+        // Only include feedback if it exists
+        ...(data.feedback && { feedback: data.feedback }),
+      });
     });
 
     return { 
