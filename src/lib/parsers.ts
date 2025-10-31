@@ -10,48 +10,130 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
   const testCasesContent = complianceIndex !== -1 ? markdown.substring(0, complianceIndex) : markdown;
 
   // Split by --- separator but be more flexible with whitespace
-  const testCaseBlocks = testCasesContent
-    .split(/\n\s*---+\s*\n/)
+  // Also try other common separators
+  let testCaseBlocks: string[] = [];
+  
+  // Try different separators to split test cases
+  testCaseBlocks = testCasesContent
+    .split(/\n\s*---+\s*\n/)  // Standard separator
     .filter(block => block.trim() !== '');
+  
+  // If we still don't have any blocks, try alternative separators
+  if (testCaseBlocks.length <= 1) {
+    testCaseBlocks = testCasesContent
+      .split(/\n\s*---\s*\n|\n\s*\*\*\*\*\*\s*\n|\n\s*=======\s*\n/)  // More separators
+      .filter(block => block.trim() !== '');
+  }
+  
+  // If we still don't have any blocks, try splitting by different patterns
+  if (testCaseBlocks.length <= 1) {
+    const sections = testCasesContent
+      .split(/(?:\n\s*\n)+/)  // Split by double newlines
+      .filter(s => s.trim() !== '');
+    
+    // Group sections that seem to be part of the same test case
+    testCaseBlocks = [];
+    let currentBlock = '';
+    for (const section of sections) {
+      if (section.includes('#') || section.includes('Title') || section.includes('Test') || section.includes('Step')) {
+        if (currentBlock) {
+          testCaseBlocks.push(currentBlock);
+        }
+        currentBlock = section;
+      } else {
+        currentBlock += '\n' + section;
+      }
+    }
+    if (currentBlock) {
+      testCaseBlocks.push(currentBlock);
+    }
+  }
 
   const testCases: TestCase[] = [];
 
   testCaseBlocks.forEach((block, index) => {
     // Use a more flexible approach to extract all sections
-    // First, let's match Case ID
-    const caseIdMatch = block.match(/###\s*Case\s+ID:?\s*(.+)/i);
     
-    // Find all sections with flexible spacing
-    // Match **Title:** followed by any content until the next section or end
-    const titleMatch = block.match(/\*\*Title:\*\*[ \t]*([^\0]*?)(?=\n\*\*(?:Description|Test Steps|Expected Results|Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
-    // Match **Description:** followed by any content until next section
-    const descriptionMatch = block.match(/\*\*Description:\*\*([^\0]*?)(?=\n\*\*(?:Test Steps|Expected Results|Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
-    // Match **Test Steps:** section with flexible spacing
-    const stepsMatch = block.match(/\*\*Test Steps:\*\*([^\0]*?)(?=\n\*\*(?:Expected Results|Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
-    // Match **Expected Results:** section - capture multiple lines until next field
-    const expectedResultsMatch = block.match(/\*\*Expected Results:\*\*([^\0]*?)(?=\n\*\*(?:Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
-    // Match **Priority:** section
-    const priorityMatch = block.match(/\*\*Priority:\*\*([^\0]*?)(?=\n\*\*(?:Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
+    // Try different formats for Case ID
+    let caseIdMatch = block.match(/###\s*Case\s+ID:?\s*(.+)/i);
+    if (!caseIdMatch) caseIdMatch = block.match(/Case\s+ID:?\s*(.+)/i);
+    if (!caseIdMatch) caseIdMatch = block.match(/ID:?\s*(.+)/i);
+    
+    // Try different formats for title
+    let titleMatch = block.match(/\*\*Title:\*\*[ \t]*([^\0]*?)(?=\n\*\*(?:Description|Test Steps|Expected Results|Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
+    if (!titleMatch) titleMatch = block.match(/(?:^|\n)Title:?\s*(.*?)(?=\n(?:Description|Steps|Test Steps|Expected|Priority)|$)/i);
+    if (!titleMatch) titleMatch = block.match(/(?:^|\n).*?(\w.*?)(?=\n(?:Description|Steps|Test Steps|Expected|Priority)|$)/i);
+    
+    // Try different formats for description
+    let descriptionMatch = block.match(/\*\*Description:\*\*([^\0]*?)(?=\n\*\*(?:Test Steps|Expected Results|Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
+    if (!descriptionMatch) descriptionMatch = block.match(/(?:^|\n)Description:?\s*(.*?)(?=\n(?:Test Steps|Steps|Expected|Priority)|$)/i);
+    if (!descriptionMatch) descriptionMatch = block.match(/(?:^|\n)Desc:?\s*(.*?)(?=\n(?:Test Steps|Steps|Expected|Priority)|$)/i);
+    
+    // Try different formats for test steps
+    let stepsMatch = block.match(/\*\*Test Steps:\*\*([^\0]*?)(?=\n\*\*(?:Expected Results|Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
+    if (!stepsMatch) stepsMatch = block.match(/(?:^|\n)Test Steps:?\s*([^\0]*?)(?=\n(?:Expected Results|Expected|Priority)|$)/i);
+    if (!stepsMatch) stepsMatch = block.match(/(?:^|\n)Steps:?\s*([^\0]*?)(?=\n(?:Expected Results|Expected|Priority)|$)/i);
+    if (!stepsMatch) stepsMatch = block.match(/(?:^|\n)(?:\d+\.|\*|\-) .*?(?=\n(?:Expected|Priority|Title|Case ID)|\n\s*\n|$)/s);
 
-    // If no Case ID, Title, or Test Steps found, this might not be a valid test case block
-    if (!caseIdMatch && !titleMatch && !stepsMatch) {
-      return; // Skip this block if it doesn't match the expected format
-    }
+    // Try different formats for expected results
+    let expectedResultsMatch = block.match(/\*\*Expected Results:\*\*([^\0]*?)(?=\n\*\*(?:Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
+    if (!expectedResultsMatch) expectedResultsMatch = block.match(/(?:^|\n)Expected Results:?\s*(.*?)(?=\n(?:Priority|Requirements Trace|Created|Updated|Version|Title|Case ID)|$)/i);
+    if (!expectedResultsMatch) expectedResultsMatch = block.match(/(?:^|\n)Expected:?\s*(.*?)(?=\n(?:Priority|Requirements Trace|Created|Updated|Version|Title|Case ID)|$)/i);
+    
+    // Try different formats for priority
+    let priorityMatch = block.match(/\*\*Priority:\*\*([^\0]*?)(?=\n\*\*(?:Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
+    if (!priorityMatch) priorityMatch = block.match(/(?:^|\n)Priority:?\s*(.*?)(?=\n(?:Requirements Trace|Created|Updated|Version|Title|Case ID)|$)/i);
 
-    // Parse test steps more reliably
+    // Parse test steps more flexibly
     let testSteps: string[] = [];
     if (stepsMatch && stepsMatch[1]) {
-      // Split by newlines and extract steps that start with numbers
+      // Split by newlines and extract steps that start with numbers, bullets, or hyphens
       const allLines = stepsMatch[1].split('\n');
       for (const line of allLines) {
         const trimmedLine = line.trim();
-        // Check if the line starts with a number followed by a period
-        if (/^\d+\.\s/.test(trimmedLine)) {
-          const step = trimmedLine.replace(/^\d+\.\s*/, '').trim();
+        // Check if the line starts with a number followed by a period, bullet, or hyphen
+        if (/^(?:\d+\.\s*|\*\s*|-\s*)/.test(trimmedLine)) {
+          // Extract the actual step content by removing the prefix
+          let step = trimmedLine.replace(/^(?:\d+\.\s*|\*\s*|-\s*)/, '').trim();
           if (step.length > 0 && 
-              !step.includes('**Expected Results:**') && 
-              !step.includes('**Priority:**') &&
-              !step.includes('**Requirements Trace:**')) {
+              !step.includes('Expected Results') && 
+              !step.includes('Priority') &&
+              !step.includes('Requirements') &&
+              !step.toLowerCase().includes('title') &&
+              !step.toLowerCase().includes('description')) {
+            testSteps.push(step);
+          }
+        }
+      }
+    }
+    
+    // If we still don't have steps from the structured format, try to find them as numbered/bulleted lines
+    if (testSteps.length === 0) {
+      const allLines = block.split('\n');
+      let inStepsSection = false;
+      for (const line of allLines) {
+        const trimmedLine = line.trim();
+        // Check if we're starting a steps section
+        if (trimmedLine.toLowerCase().includes('test steps') || trimmedLine.toLowerCase().includes('steps')) {
+          inStepsSection = true;
+          continue;
+        }
+        // Check if we're moving to another section
+        if (trimmedLine.toLowerCase().includes('expected') || 
+            trimmedLine.toLowerCase().includes('priority') ||
+            trimmedLine.toLowerCase().includes('requirements')) {
+          inStepsSection = false;
+          continue;
+        }
+        
+        // If we're in the steps section or found numbered/bulleted lines, capture them
+        if (inStepsSection || /^(?:\d+\.\s*|\*\s*|-\s*)/.test(trimmedLine)) {
+          let step = trimmedLine.replace(/^(?:\d+\.\s*|\*\s*|-\s*)/, '').trim();
+          if (step.length > 0 && 
+              !step.toLowerCase().includes('test steps') && 
+              !step.toLowerCase().includes('expected') &&
+              !step.toLowerCase().includes('priority') &&
+              !step.toLowerCase().includes('requirements')) {
             testSteps.push(step);
           }
         }
@@ -59,16 +141,39 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
     }
     
     // Try to find requirements trace - updated to support multi-line if needed
-    const requirementsTraceMatch = block.match(/\*\*Requirements Trace:\*\*([^\0]*?)(?=\n\*\*(?:Created|Updated|Version):\*\*|\n###|$)/i);
+    let requirementsTraceMatch = block.match(/\*\*Requirements Trace:\*\*([^\0]*?)(?=\n\*\*(?:Created|Updated|Version):\*\*|\n###|$)/i);
+    if (!requirementsTraceMatch) requirementsTraceMatch = block.match(/(?:^|\n)Requirements Trace:?\s*(.*?)(?=\n(?:Created|Updated|Version|Title|Case ID)|$)/i);
+    if (!requirementsTraceMatch) requirementsTraceMatch = block.match(/(?:^|\n)Requirements:?\s*(.*?)(?=\n(?:Created|Updated|Version|Title|Case ID)|$)/i);
+    
     let requirementsTrace = undefined;
     if (requirementsTraceMatch) {
       requirementsTrace = requirementsTraceMatch[1].trim();
       // Remove any remaining field markers that might have been captured in the content
-      requirementsTrace = requirementsTrace.replace(/\*\*(?:Created|Updated|Version):\*\*.*$/i, '').trim();
+      requirementsTrace = requirementsTrace.replace(/(?:Created|Updated|Version):\s*.*$/i, '').trim();
     }
 
-    // Only create a test case if we have content
-    const title = titleMatch ? titleMatch[1].trim() : 'Untitled Test Case';
+    // If we still don't have any fields with the strict format, try to extract content from the block more generally
+    if (!caseIdMatch && !titleMatch && testSteps.length === 0 && !expectedResultsMatch) {
+      // This might be a simple format, extract the first few sentences as the title/description
+      const lines = block.split('\n').filter(line => line.trim() !== '');
+      
+      // Find the first line that looks like a title
+      for (const line of lines) {
+        if (line.trim().length > 0 && 
+            !line.trim().startsWith('**') && 
+            !line.trim().startsWith('#') &&
+            !/^(?:\d+\.\s*|\*\s*|-\s*)/.test(line.trim())) {
+          // Use the first substantial line as a title if none found
+          if (!titleMatch) {
+            titleMatch = [line, line];
+          }
+          break;
+        }
+      }
+    }
+
+    // Only create a test case if we have some content
+    const title = titleMatch ? titleMatch[1].trim() : `Test Case ${index + 1}`;
     if (title.toLowerCase() === 'untitled test case' && testSteps.length === 0) {
       return; // Skip if it's an untitled case with no steps
     }
@@ -78,7 +183,7 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
     if (expectedResultsMatch) {
       expectedResults = expectedResultsMatch[1].trim();
       // Remove any remaining field markers that might have been captured in the content
-      expectedResults = expectedResults.replace(/\*\*(?:Priority|Requirements Trace|Created|Updated|Version):\*\*.*$/i, '').trim();
+      expectedResults = expectedResults.replace(/(?:Priority|Requirements Trace|Created|Updated|Version):\s*.*$/i, '').trim();
       
       // Additional cleanup: If expected results contain test case structure, extract just the content
       if (expectedResults.includes('### Case ID:') || expectedResults.includes('**Title:**') || expectedResults.includes('**Description:**')) {
@@ -118,6 +223,12 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
           description = description.substring(0, caseIdIndex).trim();
         }
       }
+    }
+    
+    // If we still don't have a description, try to use any remaining content
+    if (!description && cleanedTitle !== title) {
+      description = cleanedTitle;
+      cleanedTitle = `Test Case ${index + 1}`; // Provide default title
     }
 
     testCases.push({
