@@ -11,7 +11,19 @@ interface JiraConfig {
 }
 
 export async function exportToJira(testCases: TestCase[], jiraConfig: JiraConfig) {
-  const { baseUrl, email, apiToken, projectKey } = jiraConfig;
+  const { baseUrl, email, apiToken, projectKey, issueType } = jiraConfig;
+  
+  // Validate required configuration fields
+  if (!baseUrl || !email || !apiToken || !projectKey || !issueType) {
+    throw new Error('Missing required Jira configuration fields');
+  }
+  
+  // Validate URL format
+  try {
+    new URL(baseUrl);
+  } catch (error) {
+    throw new Error('Invalid Jira base URL format');
+  }
   
   // Basic authentication using email and API token
   const auth = Buffer.from(`${email}:${apiToken}`).toString('base64');
