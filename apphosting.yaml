@@ -4,4 +4,24 @@
 runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
-  maxInstances: 1
+  maxInstances: 10
+  minInstances: 0  # Auto-scaling to zero when not in use
+
+# Environment variables required for the application
+env:
+  # Google AI API key for AI functionality
+  - variable: GOOGLE_API_KEY
+    value: ""
+    secret: true  # Use secret manager for sensitive values
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyAmNvETDdqrnFUzWtrlWrB8-11BF-n5bOk"
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "test-case-manager-37d7a.firebaseapp.com"
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "test-case-manager-37d7a"
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "test-case-manager-37d7a.firebasestorage.app"
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "672080223135"
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:672080223135:web:d2835716fcd2911e53bbaa"

@@ -177,11 +177,21 @@ export default function GeneratePage() {
       router.push('/manage');
     } catch (error) {
       console.error('Failed to generate test cases:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Generation Failed',
-        description: error instanceof Error ? error.message : 'An unknown error occurred. Please try again.',
-      });
+      
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timed out')) {
+        toast({
+          variant: 'destructive',
+          title: 'Request Timeout',
+          description: 'The AI request took too long to process. This may happen with complex requirements. Please try again or simplify your requirements.',
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Generation Failed',
+          description: error instanceof Error ? error.message : 'An unknown error occurred. Please try again.',
+        });
+      }
     } finally {
       setIsLoading(false);
     }

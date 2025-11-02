@@ -27,23 +27,23 @@ export async function generateTestCasesFromRequirements(
 ): Promise<GenerateTestCasesFromRequirementsOutput> {
   const {productRequirementDocument, sourceCodeContext, requirementsTrace} = input;
 
-  // Validate input - either requirements or source code context must be provided
-  if ((!productRequirementDocument || productRequirementDocument.trim().length < 10) && 
-      (!sourceCodeContext || sourceCodeContext.trim().length < 10)) {
-    throw new Error('Either product requirements or source code context must be provided and should be at least 10 characters long.');
-  }
-
   try {
-    // Validate API key is available
-    if (!process.env.GOOGLE_API_KEY) {
-      console.warn('GOOGLE_API_KEY is not set in environment variables for generating test cases');
-      throw new Error('API key configuration error: GOOGLE_API_KEY is not set. Please configure environment variables in your hosting platform.');
+    // Input validation
+    if ((!productRequirementDocument || productRequirementDocument.trim().length < 10) && 
+        (!sourceCodeContext || sourceCodeContext.trim().length < 10)) {
+      throw new Error('Either product requirements or source code context must be provided and should be at least 10 characters long.');
     }
     
-    // Initialize LangChain model
+    // Validate API key is available
+    if (!process.env.GOOGLE_API_KEY) {
+      throw new Error('GOOGLE_API_KEY is not set in environment variables for generating test cases');
+    }
+    
+    // Initialize LangChain model with more robust configuration
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: "gemini-2.5-flash",
+      maxRetries: 2,  // Add retry capability
       temperature: 0.2, // Lower temperature for more consistent outputs
     });
 
@@ -108,7 +108,33 @@ Test Cases:`;
       new HumanMessage(prompt)
     ];
 
-    const result = await model.invoke(messages);
+    // Add a try-catch specifically for the API call to provide more specific error handling
+    let result;
+    try {
+      result = await model.invoke(messages);
+    } catch (apiError) {
+      console.error('Error during API call to Google Generative AI:', apiError);
+      
+      // Check if it's an authentication error
+      if (apiError instanceof Error && 
+          (apiError.message.includes('API key') || 
+           apiError.message.includes('400') || 
+           apiError.message.includes('401') || 
+           apiError.message.includes('403'))) {
+        throw new Error('Invalid or missing API key. Please verify your Google API key is correct and has proper permissions.');
+      }
+      
+      // Check if it's a quota/usage error
+      if (apiError instanceof Error && 
+          (apiError.message.includes('quota') || 
+           apiError.message.includes('billing') || 
+           apiError.message.includes('429'))) {
+        throw new Error('API quota exceeded or billing issue. Please check your Google Cloud billing settings.');
+      }
+      
+      // Re-throw to be caught by outer catch
+      throw apiError;
+    }
 
     const text = result?.content?.toString() || '';
 
@@ -142,91 +168,11 @@ Test Cases:`;
   } catch (error) {
     console.error('Error generating test cases:', error);
     
-    // Check if this is a specific API error that we should handle differently
+    // Propagate the error to be handled by the calling function
     if (error instanceof Error) {
-      // For all errors, return mock test cases as a fallback - this prevents server component crashes
-      // and allows the UI to continue working even if the AI API is temporarily unavailable
-      console.warn('Returning mock test cases due to error:', error.message);
-      return {
-        testCases: `### Case ID: TC-001
-**Title:** Validate User Authentication with Secure Credentials
-**Description:** Verify that users can securely log in using email and password with proper validation and security measures
-**Test Steps:**
-1. Navigate to the login page
-2. Enter valid email and password credentials
-3. Click the login button
-4. Verify successful authentication and redirection
-**Expected Results:** User is successfully authenticated and redirected to the dashboard with proper session management
-**Priority:** High
-
----
-
-### Case ID: TC-002
-**Title:** Verify Data Privacy and Protection for Sensitive Information
-**Description:** Ensure that sensitive patient data is properly protected and only accessible to authorized users
-**Test Steps:**
-1. Log in with different user roles
-2. Attempt to access data beyond user permissions
-3. Verify access is properly restricted
-4. Check data encryption in transit and at rest
-**Expected Results:** Data access is properly controlled with encryption and no unauthorized access is possible
-**Priority:** Critical
-
----
-
-### Case ID: TC-003
-**Title:** Validate System Reliability and Fault Tolerance
-**Description:** Confirm that the system maintains functionality and data integrity under various conditions
-**Test Steps:**
-1. Perform stress testing with concurrent users
-2. Simulate network interruptions
-3. Test system recovery from failures
-4. Verify data consistency after recovery
-**Expected Results:** System remains stable under load, recovers gracefully from failures, and maintains data integrity
-**Priority:** High`,
-        complianceReport: 'Compliance verification not provided in mock response due to temporary service unavailability.'
-      };
+      throw error; // Re-throw the error to be handled by the caller
+    } else {
+      throw new Error('An unexpected error occurred during test case generation.');
     }
-    
-    // For any other type of error, still return mock data
-    return {
-      testCases: `### Case ID: TC-001
-**Title:** Validate User Authentication with Secure Credentials
-**Description:** Verify that users can securely log in using email and password with proper validation and security measures
-**Test Steps:**
-1. Navigate to the login page
-2. Enter valid email and password credentials
-3. Click the login button
-4. Verify successful authentication and redirection
-**Expected Results:** User is successfully authenticated and redirected to the dashboard with proper session management
-**Priority:** High
-
----
-
-### Case ID: TC-002
-**Title:** Verify Data Privacy and Protection for Sensitive Information
-**Description:** Ensure that sensitive patient data is properly protected and only accessible to authorized users
-**Test Steps:**
-1. Log in with different user roles
-2. Attempt to access data beyond user permissions
-3. Verify access is properly restricted
-4. Check data encryption in transit and at rest
-**Expected Results:** Data access is properly controlled with encryption and no unauthorized access is possible
-**Priority:** Critical
-
----
-
-### Case ID: TC-003
-**Title:** Validate System Reliability and Fault Tolerance
-**Description:** Confirm that the system maintains functionality and data integrity under various conditions
-**Test Steps:**
-1. Perform stress testing with concurrent users
-2. Simulate network interruptions
-3. Test system recovery from failures
-4. Verify data consistency after recovery
-**Expected Results:** System remains stable under load, recovers gracefully from failures, and maintains data integrity
-**Priority:** High`,
-      complianceReport: 'Compliance verification not provided in mock response due to temporary service unavailability.'
-    };
   }
 }

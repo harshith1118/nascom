@@ -39,10 +39,6 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
   },
-  // Disable Turbopack for more stable performance
-  // devIndicators: {  // Removed due to deprecation
-  //   buildActivity: false,
-  // },
   // Vercel specific configuration
   output: 'standalone',
 };
