@@ -183,7 +183,7 @@ export default function GeneratePage() {
         toast({
           variant: 'destructive',
           title: 'Request Timeout',
-          description: 'The AI request took too long to process. This may happen with complex requirements. Please try again or simplify your requirements.',
+          description: 'The AI request took too long to process. This may happen with complex requirements. Please try again with simpler requirements or try again later.',
         });
       } else {
         toast({
