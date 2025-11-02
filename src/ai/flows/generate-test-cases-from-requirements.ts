@@ -26,6 +26,15 @@ export async function generateTestCasesFromRequirements(
   input: GenerateTestCasesFromRequirementsInput
 ): Promise<GenerateTestCasesFromRequirementsOutput> {
   const {productRequirementDocument, sourceCodeContext, requirementsTrace} = input;
+  
+  // Add detailed logging for debugging
+  console.log('Starting generateTestCasesFromRequirements with input:', {
+    hasProductRequirementDocument: !!productRequirementDocument,
+    productRequirementDocumentLength: productRequirementDocument?.length,
+    hasSourceCodeContext: !!sourceCodeContext,
+    sourceCodeContextLength: sourceCodeContext?.length,
+    hasRequirementsTrace: !!requirementsTrace
+  });
 
   try {
     // Input validation
@@ -36,8 +45,11 @@ export async function generateTestCasesFromRequirements(
     
     // Validate API key is available
     if (!process.env.GOOGLE_API_KEY) {
+      console.error('GOOGLE_API_KEY is not set in environment variables');
       throw new Error('GOOGLE_API_KEY is not set in environment variables for generating test cases');
     }
+    
+    console.log('Initializing LangChain model with configuration');
     
     // Initialize LangChain model with more robust configuration
     const model = new ChatGoogleGenerativeAI({
@@ -45,7 +57,10 @@ export async function generateTestCasesFromRequirements(
       model: "gemini-2.5-flash",
       maxRetries: 2,  // Add retry capability
       temperature: 0.2, // Lower temperature for more consistent outputs
+      timeout: 60000, // 60 second timeout for API calls
     });
+    
+    console.log('LangChain model initialized successfully');
 
     let prompt = `You are an expert QA engineer specializing in healthcare software testing. Your task is to analyze the provided software requirements and/or source code changes and generate exactly 3 comprehensive test cases in the specified format that comply with healthcare regulations.`;
 
@@ -108,12 +123,27 @@ Test Cases:`;
       new HumanMessage(prompt)
     ];
 
+    console.log('Making API call to Google Generative AI with prompt length:', messages[1].content.toString().length);
+    
     // Add a try-catch specifically for the API call to provide more specific error handling
     let result;
     try {
-      result = await model.invoke(messages);
+      // Use Promise.race to implement a timeout for the API call
+      result = await Promise.race([
+        model.invoke(messages),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('API call timed out after 55 seconds')), 55000)
+        )
+      ]);
+      console.log('API call completed successfully');
     } catch (apiError) {
       console.error('Error during API call to Google Generative AI:', apiError);
+      
+      // Check if it's a timeout error
+      if (apiError instanceof Error && apiError.message.includes('timed out')) {
+        console.error('API call timed out after 55 seconds');
+        throw new Error('API request timed out. The request took too long to process. Please try again with simpler requirements.');
+      }
       
       // Check if it's an authentication error
       if (apiError instanceof Error && 
@@ -121,6 +151,7 @@ Test Cases:`;
            apiError.message.includes('400') || 
            apiError.message.includes('401') || 
            apiError.message.includes('403'))) {
+        console.error('Authentication error during API call:', apiError.message);
         throw new Error('Invalid or missing API key. Please verify your Google API key is correct and has proper permissions.');
       }
       
@@ -129,6 +160,7 @@ Test Cases:`;
           (apiError.message.includes('quota') || 
            apiError.message.includes('billing') || 
            apiError.message.includes('429'))) {
+        console.error('Quota or billing error during API call:', apiError.message);
         throw new Error('API quota exceeded or billing issue. Please check your Google Cloud billing settings.');
       }
       
@@ -142,6 +174,8 @@ Test Cases:`;
       console.warn('Empty response received from AI model');
       throw new Error('AI service returned an empty response. Please try again.');
     }
+    
+    console.log('Processing AI response with length:', text.length);
 
     // Extract test cases and compliance report from the AI output
     let testCases = '';
@@ -161,18 +195,41 @@ Test Cases:`;
     // Clean up formatting for better display
     complianceReport = cleanForDisplay(complianceReport);
     
+    console.log('Successfully processed AI response, test cases length:', testCases.length);
+    
     return {
       testCases,
       complianceReport
     };
   } catch (error) {
-    console.error('Error generating test cases:', error);
+    console.error('Error generating test cases:', {
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorStack: error instanceof Error ? error.stack : 'No stack trace',
+      errorType: typeof error
+    });
     
-    // Propagate the error to be handled by the calling function
+    // Check if this is a timeout error to return a specific message
     if (error instanceof Error) {
-      throw error; // Re-throw the error to be handled by the caller
+      if (error.message.includes('timed out') || error.message.includes('timeout')) {
+        console.warn('Timeout error occurred, returning for UI handling:', error.message);
+        throw new Error('Request timeout: The AI service took too long to respond. This may happen with complex requirements. Please try again with simpler requirements or try again later.');
+      }
+      
+      // Check for API-related errors
+      if (error.message.includes('API') || error.message.includes('auth') || 
+          error.message.includes('400') || error.message.includes('401') || 
+          error.message.includes('403') || error.message.includes('429')) {
+        console.warn('API error occurred, returning for UI handling:', error.message);
+        throw error;
+      }
+      
+      // For other errors, log and re-throw
+      console.error('Non-API error in generateTestCasesFromRequirements:', error.message);
+      throw error;
     } else {
+      console.error('Unknown error type in generateTestCasesFromRequirements:', error);
       throw new Error('An unexpected error occurred during test case generation.');
     }
   }
+}
 }
