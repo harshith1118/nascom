@@ -44,9 +44,9 @@ export async function generateTestCasesFromRequirements(
     }
     
     // Validate API key is available
-    if (!process.env.GOOGLE_API_KEY) {
+    if (!process.env.GOOGLE_API_KEY || process.env.GOOGLE_API_KEY.trim() === '') {
       console.error('GOOGLE_API_KEY is not set in environment variables');
-      throw new Error('GOOGLE_API_KEY is not set in environment variables for generating test cases');
+      throw new Error('GOOGLE_API_KEY is not set in environment variables for generating test cases. Please set GOOGLE_API_KEY in your environment variables.');
     }
     
     console.log('Initializing LangChain model with configuration');
@@ -54,7 +54,7 @@ export async function generateTestCasesFromRequirements(
     // Initialize LangChain model with more robust configuration - using faster model for shorter response time
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
-      model: "gemini-1.5-flash", // Using gemini-1.5-flash which is optimized for speed
+      model: "gemini-2.5-flash", // Using gemini-2.5-flash which is optimized for speed
       maxRetries: 1,  // Reduce retries to prevent extended timeouts
       temperature: 0.3, // Slightly higher temperature for faster generation
       timeout: 30000, // Reduce timeout to 30 seconds to prevent 504s
@@ -62,7 +62,7 @@ export async function generateTestCasesFromRequirements(
     
     console.log('LangChain model initialized successfully');
 
-    let prompt = `You are an expert QA engineer. Generate exactly 3 test cases for the provided software requirements in the specified format.
+    let prompt = `You are an expert QA engineer. Generate exactly 3 test cases for the provided software requirements in the specified format, and include compliance verification for healthcare standards (FDA, ISO 13485, GDPR, HIPAA).
 
 Requirements:
 ${productRequirementDocument || sourceCodeContext}
@@ -81,6 +81,9 @@ Generate test cases in this format:
 
 Separate each test case with:
 ---
+
+Compliance Note:
+[Include a brief compliance assessment for the generated test cases against healthcare standards such as FDA, ISO 13485, GDPR, and HIPAA. Identify how the test cases address patient data protection, security measures, audit trails, and medical device validation requirements.]
 
 Test Cases:`;
 

@@ -33,20 +33,10 @@ export async function checkCompliance(
     }
     
     // Validate API key is available
-    if (!process.env.GOOGLE_API_KEY) {
+    if (!process.env.GOOGLE_API_KEY || process.env.GOOGLE_API_KEY.trim() === '') {
       console.warn('GOOGLE_API_KEY is not set in environment variables for compliance check');
       
-      // Return mock compliance report as a graceful fallback
-      return {
-        report: 'Comprehensive compliance analysis indicates adherence to FDA, ISO 13485, GDPR, HIPAA, IEC 62304, and 21 CFR Part 820 standards. Test cases demonstrate security measures for patient data, validation of medical device functionality, and proper audit trail mechanisms. Minor gaps identified in edge case coverage for data breach scenarios.',
-        recommendations: [
-          'Implement additional test scenarios for data breach detection and response procedures',
-          'Expand test coverage for emergency access protocols during system failures',
-          'Include specific tests for medical device interoperability compliance',
-          'Add validation steps for software lifecycle management per IEC 62304',
-          'Include verification of design controls per 21 CFR Part 820'
-        ]
-      };
+      throw new Error('GOOGLE_API_KEY is not set in environment variables for compliance checking. Please set GOOGLE_API_KEY in your environment variables.');
     }
     
     // Initialize LangChain model with more robust configuration
@@ -122,15 +112,8 @@ Recommendations:
     const text = result?.content?.toString() || '';
 
     if (!text || text.trim().length === 0) {
-      console.warn('Empty response received from AI model during compliance check, returning mock data');
-      return {
-        report: 'Comprehensive compliance analysis indicates adherence to FDA, ISO 13485, GDPR, and HIPAA standards. Test cases demonstrate security measures for patient data, validation of medical device functionality, and proper audit trail mechanisms. Minor gaps identified in edge case coverage for data breach scenarios.',
-        recommendations: [
-          'Implement additional test scenarios for data breach detection and response procedures',
-          'Expand test coverage for emergency access protocols during system failures',
-          'Include specific tests for medical device interoperability compliance'
-        ]
-      };
+      console.warn('Empty response received from AI model during compliance check');
+      throw new Error('AI service returned an empty response during compliance check. Please try again.');
     }
 
     // Parse the response to extract report and recommendations
@@ -178,52 +161,16 @@ Recommendations:
   } catch (error) {
     console.error('Error checking compliance:', error);
     
-    // Check if this is a specific API error that we should handle differently
-    if (error instanceof Error) {
-      if (error.message.includes('API key') || 
-          error.message.includes('auth') || 
-          error.message.includes('400') || 
-          error.message.includes('401') || 
-          error.message.includes('403')) {
-        console.warn('API authentication error, returning mock data:', error.message);
-        
-        // Return mock data for auth issues
-        return {
-          report: 'Comprehensive compliance analysis indicates adherence to FDA, ISO 13485, GDPR, and HIPAA standards. Test cases demonstrate security measures for patient data, validation of medical device functionality, and proper audit trail mechanisms. Minor gaps identified in edge case coverage for data breach scenarios.',
-          recommendations: [
-            'Implement additional test scenarios for data breach detection and response procedures',
-            'Expand test coverage for emergency access protocols during system failures',
-            'Include specific tests for medical device interoperability compliance'
-          ]
-        };
-      }
-      
-      if (error.message.includes('quota') || 
-          error.message.includes('billing') || 
-          error.message.includes('429')) {
-        console.warn('API quota/billing error, returning mock data:', error.message);
-        
-        // Return different message for quota issues
-        return {
-          report: 'API quota exceeded. Compliance analysis temporarily unavailable. Please check your billing settings.',
-          recommendations: [
-            'Check API billing settings',
-            'Consider implementing API usage monitoring',
-            'Include specific tests for medical device interoperability compliance'
-          ]
-        };
-      }
+    if (error instanceof Error && 
+        (error.message.includes('GOOGLE_API_KEY') || 
+         error.message.includes('API') || 
+         error.message.includes('auth') || 
+         error.message.includes('400') || 
+         error.message.includes('401') || 
+         error.message.includes('403'))) {
+      throw error; // Re-throw API errors so they can be handled properly by the UI
     }
     
-    // For other types of errors, return the mock compliance report as a fallback
-    // This prevents server component crashes and allows the UI to continue working
-    return {
-      report: cleanForDisplay('Comprehensive compliance analysis indicates adherence to FDA, ISO 13485, GDPR, and HIPAA standards. Test cases demonstrate security measures for patient data, validation of medical device functionality, and proper audit trail mechanisms. Minor gaps identified in edge case coverage for data breach scenarios.'),
-      recommendations: [
-        'Implement additional test scenarios for data breach detection and response procedures',
-        'Expand test coverage for emergency access protocols during system failures',
-        'Include specific tests for medical device interoperability compliance'
-      ]
-    };
+    throw error; // Re-throw all other errors as well for proper handling
   }
 }

@@ -185,6 +185,12 @@ export default function GeneratePage() {
           title: 'Request Timeout',
           description: 'The AI request took too long to process. This may happen with complex requirements. Please try again with simpler requirements or try again later.',
         });
+      } else if (error instanceof Error && error.message.includes('GOOGLE_API_KEY')) {
+        toast({
+          variant: 'destructive',
+          title: 'API Configuration Error',
+          description: 'Missing or invalid Google API key. Please set GOOGLE_API_KEY in your environment variables for proper test case generation.',
+        });
       } else {
         toast({
           variant: 'destructive',

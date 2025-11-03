@@ -84,11 +84,19 @@ export default function CompliancePage() {
         errorMessage = error;
       }
       
-      toast({
-        variant: 'destructive',
-        title: 'Check Failed',
-        description: errorMessage || 'An unknown error occurred during compliance checking.',
-      });
+      if (errorMessage.includes('GOOGLE_API_KEY')) {
+        toast({
+          variant: 'destructive',
+          title: 'API Configuration Error',
+          description: 'Missing or invalid Google API key. Please set GOOGLE_API_KEY in your environment variables for proper compliance checking.',
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Check Failed',
+          description: errorMessage || 'An unknown error occurred during compliance checking.',
+        });
+      }
     } finally {
       setIsLoading(false);
     }

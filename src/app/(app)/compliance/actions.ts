@@ -48,18 +48,10 @@ export async function checkCompliance(input: CheckComplianceInput) {
              error.message.includes('auth') || 
              error.message.includes('400') || 
              error.message.includes('401') || 
-             error.message.includes('403'))) {
+             error.message.includes('403') ||
+             error.message.includes('environment variables'))) {
             
-            // Return mock data instead of throwing to prevent server error
-            console.warn('Returning mock compliance report due to API issue:', error.message);
-            return {
-                report: 'Comprehensive compliance analysis indicates adherence to FDA, ISO 13485, GDPR, and HIPAA standards. Test cases demonstrate security measures for patient data, validation of medical device functionality, and proper audit trail mechanisms. Minor gaps identified in edge case coverage for data breach scenarios.',
-                recommendations: [
-                    'Implement additional test scenarios for data breach detection and response procedures',
-                    'Expand test coverage for emergency access protocols during system failures',
-                    'Include specific tests for medical device interoperability compliance'
-                ]
-            };
+            throw error; // Re-throw so the UI can handle it appropriately
         }
         
         if (error instanceof Error) {

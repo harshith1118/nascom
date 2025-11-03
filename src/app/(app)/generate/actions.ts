@@ -41,49 +41,10 @@ export async function generateTests(input: GenerateTestCasesFromRequirementsInpu
              error.message.includes('auth') || 
              error.message.includes('400') || 
              error.message.includes('401') || 
-             error.message.includes('403'))) {
+             error.message.includes('403') ||
+             error.message.includes('environment variables'))) {
             
-            // Return mock data instead of throwing to prevent server error
-            console.warn('Returning mock test cases due to API issue:', error.message);
-            return {
-                testCases: `### Case ID: TC-001
-**Title:** Validate User Authentication with Secure Credentials
-**Description:** Verify that users can securely log in using email and password with proper validation and security measures
-**Test Steps:**
-1. Navigate to the login page
-2. Enter valid email and password credentials
-3. Click the login button
-4. Verify successful authentication and redirection
-**Expected Results:** User is successfully authenticated and redirected to the dashboard with proper session management
-**Priority:** High
-
-----
-
-### Case ID: TC-002
-**Title:** Verify Data Privacy and Protection for Sensitive Information
-**Description:** Ensure that sensitive patient data is properly protected and only accessible to authorized users
-**Test Steps:**
-1. Log in with different user roles
-2. Attempt to access data beyond user permissions
-3. Verify access is properly restricted
-4. Check data encryption in transit and at rest
-**Expected Results:** Data access is properly controlled with encryption and no unauthorized access is possible
-**Priority:** Critical
-
-----
-
-### Case ID: TC-003
-**Title:** Validate System Reliability and Fault Tolerance
-**Description:** Confirm that the system maintains functionality and data integrity under various conditions
-**Test Steps:**
-1. Perform stress testing with concurrent users
-2. Simulate network interruptions
-3. Test system recovery from failures
-4. Verify data consistency after recovery
-**Expected Results:** System remains stable under load, recovers gracefully from failures, and maintains data integrity
-**Priority:** High`,
-                complianceReport: 'Compliance verification not provided in mock response due to temporary service unavailability.'
-            };
+            throw error; // Re-throw so the UI can handle it appropriately
         }
         
         // For authentication/authorization errors, return mock data

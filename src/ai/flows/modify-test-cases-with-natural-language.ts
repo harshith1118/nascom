@@ -26,52 +26,10 @@ export async function modifyTestCasesWithNaturalLanguage(
   const { testCases, modificationInstructions } = input;
 
   try {
-    // Only initialize the API when the function is called
-    if (!process.env.GOOGLE_API_KEY) {
-      console.warn('GOOGLE_API_KEY is not set in environment variables for modifying test cases');
-      
-      // Return mock modified test cases as a graceful fallback
-      return {
-        modifiedTestCases: `### Case ID: TC-001
-**Title:** Enhanced Medical Device Authentication Validation
-**Description:** Verify multi-factor authentication requirements for medical device access with biometric validation
-**Test Steps:**
-1. Access the medical device interface
-2. Enter primary authentication credentials
-3. Complete biometric validation
-4. Attempt device access without secondary validation
-5. Verify access is denied without complete authentication
-**Expected Results:** Device remains locked until full multi-factor authentication is completed
-**Priority:** Critical
-
----
-
-### Case ID: TC-002
-**Title:** Improved Patient Data Access Control
-**Description:** Verify role-based access controls prevent unauthorized patient data access in multi-department environments
-**Test Steps:**
-1. Log in with nurse account credentials
-2. Navigate to cardiology patient records
-3. Attempt to access radiology reports
-4. Verify access is denied based on role permissions
-5. Log in with authorized radiologist account
-**Expected Results:** Access granted only with appropriate role-based permissions
-**Priority:** Critical
-
----
-
-### Case ID: TC-003
-**Title:** Advanced Medical Alert System Validation
-**Description:** Verify the medical alert system properly flags critical patient conditions and triggers appropriate notifications
-**Test Steps:**
-1. Access patient monitoring interface
-2. Simulate critical vital sign parameters
-3. Verify alert system triggers
-4. Confirm notifications are sent to appropriate medical staff
-5. Validate alert escalation protocols
-**Expected Results:** Medical staff receive timely alerts with appropriate priority levels
-**Priority:** Critical`
-      };
+    // Validate API key is available
+    if (!process.env.GOOGLE_API_KEY || process.env.GOOGLE_API_KEY.trim() === '') {
+      console.error('GOOGLE_API_KEY is not set in environment variables for modifying test cases');
+      throw new Error('GOOGLE_API_KEY is not set in environment variables for modifying test cases. Please set GOOGLE_API_KEY in your environment variables.');
     }
     
     // Initialize LangChain model
@@ -110,48 +68,8 @@ IMPORTANT FORMAT REQUIREMENTS:
     const text = result?.content?.toString() || '';
 
     if (!text || text.trim().length === 0) {
-      console.warn('Empty response received from AI model during test case modification, returning mock data');
-      return {
-        modifiedTestCases: `### Case ID: TC-001
-**Title:** Enhanced Medical Device Authentication Validation
-**Description:** Verify multi-factor authentication requirements for medical device access with biometric validation
-**Test Steps:**
-1. Access the medical device interface
-2. Enter primary authentication credentials
-3. Complete biometric validation
-4. Attempt device access without secondary validation
-5. Verify access is denied without complete authentication
-**Expected Results:** Device remains locked until full multi-factor authentication is completed
-**Priority:** Critical
-
----
-
-### Case ID: TC-002
-**Title:** Improved Patient Data Access Control
-**Description:** Verify role-based access controls prevent unauthorized patient data access in multi-department environments
-**Test Steps:**
-1. Log in with nurse account credentials
-2. Navigate to cardiology patient records
-3. Attempt to access radiology reports
-4. Verify access is denied based on role permissions
-5. Log in with authorized radiologist account
-**Expected Results:** Access granted only with appropriate role-based permissions
-**Priority:** Critical
-
----
-
-### Case ID: TC-003
-**Title:** Advanced Medical Alert System Validation
-**Description:** Verify the medical alert system properly flags critical patient conditions and triggers appropriate notifications
-**Test Steps:**
-1. Access patient monitoring interface
-2. Simulate critical vital sign parameters
-3. Verify alert system triggers
-4. Confirm notifications are sent to appropriate medical staff
-5. Validate alert escalation protocols
-**Expected Results:** Medical staff receive timely alerts with appropriate priority levels
-**Priority:** Critical`
-      };
+      console.warn('Empty response received from AI model during test case modification');
+      throw new Error('AI service returned an empty response. Please try again with different modification instructions.');
     }
 
     // Clean up formatting for better display
@@ -163,50 +81,16 @@ IMPORTANT FORMAT REQUIREMENTS:
   } catch (error) {
     console.error('Error modifying test cases:', error);
     
-    // Return mock modified test cases as a fallback - this prevents server component crashes
-    // and allows the UI to continue working even if the AI API is temporarily unavailable
-    const mockModifiedTestCases = `### Case ID: TC-001
-**Title:** Enhanced Medical Device Authentication Validation
-**Description:** Verify multi-factor authentication requirements for medical device access with biometric validation
-**Test Steps:**
-1. Access the medical device interface
-2. Enter primary authentication credentials
-3. Complete biometric validation
-4. Attempt device access without secondary validation
-5. Verify access is denied without complete authentication
-**Expected Results:** Device remains locked until full multi-factor authentication is completed
-**Priority:** Critical
-
----
-
-### Case ID: TC-002
-**Title:** Improved Patient Data Access Control
-**Description:** Verify role-based access controls prevent unauthorized patient data access in multi-department environments
-**Test Steps:**
-1. Log in with nurse account credentials
-2. Navigate to cardiology patient records
-3. Attempt to access radiology reports
-4. Verify access is denied based on role permissions
-5. Log in with authorized radiologist account
-**Expected Results:** Access granted only with appropriate role-based permissions
-**Priority:** Critical
-
----
-
-### Case ID: TC-003
-**Title:** Advanced Medical Alert System Validation
-**Description:** Verify the medical alert system properly flags critical patient conditions and triggers appropriate notifications
-**Test Steps:**
-1. Access patient monitoring interface
-2. Simulate critical vital sign parameters
-3. Verify alert system triggers
-4. Confirm notifications are sent to appropriate medical staff
-5. Validate alert escalation protocols
-**Expected Results:** Medical staff receive timely alerts with appropriate priority levels
-**Priority:** Critical`;
+    if (error instanceof Error && 
+        (error.message.includes('GOOGLE_API_KEY') || 
+         error.message.includes('API') || 
+         error.message.includes('auth') || 
+         error.message.includes('400') || 
+         error.message.includes('401') || 
+         error.message.includes('403'))) {
+      throw error; // Re-throw API errors so they can be handled properly by the UI
+    }
     
-    return {
-      modifiedTestCases: cleanForDisplay(mockModifiedTestCases)
-    };
+    throw error; // Re-throw all other errors as well for proper handling
   }
 }
