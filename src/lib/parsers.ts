@@ -185,6 +185,10 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
       // Remove any remaining field markers that might have been captured in the content
       expectedResults = expectedResults.replace(/(?:Priority|Requirements Trace|Created|Updated|Version):\s*.*$/i, '').trim();
       
+      // Remove any bullet points or list formatting that might have been included
+      expectedResults = expectedResults.replace(/^\*\s*/gm, '').trim();
+      expectedResults = expectedResults.replace(/^\*\s*/m, '').trim(); // Sometimes bullet points appear at start only
+      
       // Additional cleanup: If expected results contain test case structure, extract just the content
       if (expectedResults.includes('### Case ID:') || expectedResults.includes('**Title:**') || expectedResults.includes('**Description:**')) {
         // This suggests the AI included multiple test cases in one, so we just take content before the next case ID

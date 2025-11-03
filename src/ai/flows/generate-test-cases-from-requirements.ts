@@ -67,7 +67,7 @@ export async function generateTestCasesFromRequirements(
 Requirements:
 ${productRequirementDocument || sourceCodeContext}
 
-Generate test cases in this format:
+Generate test cases in this EXACT format with NO bullet points in Expected Results:
 ### Case ID: TC-001
 **Title:** [Brief title]
 **Description:** [Brief description]
@@ -75,7 +75,7 @@ Generate test cases in this format:
 1. [Actionable step 1]
 2. [Actionable step 2]
 3. [Actionable step 3]
-**Expected Results:** [Specific outcome description]
+**Expected Results:** [Specific outcome description in plain text, NOT as bullet points or list items]
 **Priority:** [High/Medium/Low]
 **Requirements Trace:** [${requirementsTrace || 'N/A'}]
 
