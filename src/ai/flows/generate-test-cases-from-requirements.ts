@@ -82,8 +82,8 @@ Generate test cases in this EXACT format with NO bullet points in Expected Resul
 Separate each test case with:
 ---
 
-Compliance Note:
-[Include a brief compliance assessment for the generated test cases against healthcare standards such as FDA, ISO 13485, GDPR, and HIPAA. Identify how the test cases address patient data protection, security measures, audit trails, and medical device validation requirements.]
+Compliance assessment:
+[Include a concise compliance assessment for the generated test cases against healthcare standards such as FDA, ISO 13485, GDPR, and HIPAA. Keep this assessment under 100 words focusing on patient data protection, security measures, audit trails, and medical device validation requirements. Do not format this as a test case with Title, Description, etc. Just provide the assessment text directly.]
 
 Test Cases:`;
 
@@ -151,15 +151,50 @@ Test Cases:`;
     let testCases = '';
     let complianceReport = '';
     
-    const complianceIndex = text.indexOf('Compliance Note:');
+    // Look for various compliance section markers
+    let complianceIndex = text.indexOf('Compliance assessment:');
+    if (complianceIndex === -1) {
+      complianceIndex = text.indexOf('Compliance Note:');
+    }
+    if (complianceIndex === -1) {
+      complianceIndex = text.indexOf('Compliance Summary:');
+    }
     
     if (complianceIndex !== -1) {
       testCases = text.substring(0, complianceIndex).trim();
       complianceReport = text.substring(complianceIndex).trim();
+      
+      // Remove the heading itself from the compliance report
+      if (complianceReport.startsWith('Compliance assessment:')) {
+        complianceReport = complianceReport.substring('Compliance assessment:'.length).trim();
+      } else if (complianceReport.startsWith('Compliance Note:')) {
+        complianceReport = complianceReport.substring('Compliance Note:'.length).trim();
+      } else if (complianceReport.startsWith('Compliance Summary:')) {
+        complianceReport = complianceReport.substring('Compliance Summary:'.length).trim();
+      }
     } else {
-      // Fallback: assume entire content is test cases
-      testCases = text;
-      complianceReport = 'Compliance verification not provided in AI response.';
+      // Fallback: check for other patterns that might indicate compliance content
+      // If the text ends with compliance-related content, treat it separately
+      const lines = text.split('\n');
+      let complianceStart = -1;
+      
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i].trim();
+        if (line.includes('HIPAA') || line.includes('GDPR') || line.includes('FDA') || 
+            line.includes('ISO 13485') || line.includes('compliance') || 
+            line.toLowerCase().includes('security') || line.toLowerCase().includes('audit')) {
+          complianceStart = i;
+        }
+      }
+      
+      if (complianceStart > 0) {
+        testCases = lines.slice(0, complianceStart).join('\n').trim();
+        complianceReport = lines.slice(complianceStart).join('\n').trim();
+      } else {
+        // Fallback: assume entire content is test cases
+        testCases = text;
+        complianceReport = 'Compliance verification not provided in AI response.';
+      }
     }
     
     // Clean up formatting for better display

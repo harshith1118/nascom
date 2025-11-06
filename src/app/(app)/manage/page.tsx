@@ -80,7 +80,7 @@ export default function ManagePage() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertTitle>Compliance Summary</AlertTitle>
-          <AlertDescription className="whitespace-pre-line line-clamp-3">
+          <AlertDescription className="whitespace-pre-line">
             {complianceReport}
           </AlertDescription>
         </Alert>
