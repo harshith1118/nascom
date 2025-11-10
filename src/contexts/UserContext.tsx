@@ -17,6 +17,7 @@ export interface User {
 interface UserContextType {
   currentUser: User | null;
   setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
+  loading: boolean;
   logout: () => Promise<void>;
 }
 
@@ -100,7 +101,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <UserContext.Provider value={{ currentUser, setCurrentUser, logout }}>
+    <UserContext.Provider value={{ currentUser, setCurrentUser, loading, logout }}>
       {children}
     </UserContext.Provider>
   );
