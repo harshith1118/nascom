@@ -1,4 +1,5 @@
 import { type TestCase } from './types';
+import { cleanForDisplay } from './formatting';
 
 export function parseTestCasesMarkdown(markdown: string): TestCase[] {
   if (!markdown || typeof markdown !== 'string') {
@@ -237,16 +238,16 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
 
     testCases.push({
       id: `tc-${Date.now()}-${index}`,
-      caseId: caseIdMatch ? caseIdMatch[1].trim() : `TC-${String(index + 1).padStart(3, '0')}`,
-      title: cleanedTitle,
-      description: description,
-      testSteps: testSteps,
-      expectedResults: expectedResults,
-      priority: priorityMatch ? priorityMatch[1].trim() : 'Medium',
+      caseId: caseIdMatch ? cleanForDisplay(caseIdMatch[1].trim()) : `TC-${String(index + 1).padStart(3, '0')}`,
+      title: cleanForDisplay(cleanedTitle),
+      description: cleanForDisplay(description),
+      testSteps: testSteps.map(step => cleanForDisplay(step)), // Sanitize each step
+      expectedResults: cleanForDisplay(expectedResults),
+      priority: priorityMatch ? cleanForDisplay(priorityMatch[1].trim()) : 'Medium',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       version: 1,
-      requirementsTrace,
+      requirementsTrace: requirementsTrace ? cleanForDisplay(requirementsTrace) : undefined,
     });
   });
 
@@ -254,14 +255,14 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
 }
 
 export function testCaseToMarkdown(testCase: TestCase): string {
-    return `### Case ID: ${testCase.caseId}
-**Title:** ${testCase.title}
-**Description:** ${testCase.description}
+    return `### Case ID: ${cleanForDisplay(testCase.caseId)}
+**Title:** ${cleanForDisplay(testCase.title)}
+**Description:** ${cleanForDisplay(testCase.description)}
 **Test Steps:**
-${testCase.testSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
-**Expected Results:** ${testCase.expectedResults}
-**Priority:** ${testCase.priority}
-**Requirements Trace:** ${testCase.requirementsTrace || 'N/A'}
+${testCase.testSteps.map((step, i) => `${i + 1}. ${cleanForDisplay(step)}`).join('\n')}
+**Expected Results:** ${cleanForDisplay(testCase.expectedResults)}
+**Priority:** ${cleanForDisplay(testCase.priority)}
+**Requirements Trace:** ${testCase.requirementsTrace ? cleanForDisplay(testCase.requirementsTrace) : 'N/A'}
 **Created:** ${testCase.createdAt}
 **Updated:** ${testCase.updatedAt}
 **Version:** ${testCase.version}
