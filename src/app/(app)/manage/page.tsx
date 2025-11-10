@@ -86,9 +86,11 @@ export default function ManagePage() {
         </Alert>
       )}
 
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {testCases
-          .slice()
+          .filter((tc, index, self) => 
+            index === self.findIndex(t => t.id === tc.id)
+          ) // Remove duplicates based on ID
           .sort((a, b) => {
             // Sort by caseId, handling both "TC-XXX" and numeric formats
             const aNum = parseInt(a.caseId.replace(/\D/g, ''), 10) || 0;

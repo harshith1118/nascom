@@ -321,46 +321,46 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
   return (
     <>
       <Card>
-        <CardHeader className="pb-2 sm:pb-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-3">
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
             <div className="flex-1 min-w-0">
-              <CardDescription className="text-xs sm:text-sm">{testCase.caseId}</CardDescription>
-              <CardTitle className="text-sm sm:text-base md:text-lg truncate">{testCase.title}</CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">{testCase.caseId}</CardDescription>
+              <CardTitle className="text-base font-semibold mt-1 break-words">{testCase.title}</CardTitle>
             </div>
-            <div className="flex flex-row sm:flex-col gap-1 sm:gap-2 items-center sm:items-end">
-              <Badge variant={priorityVariant(testCase.priority)} className="capitalize flex-shrink-0 text-xs">
+            <div className="flex flex-row gap-1 items-center self-start pt-3 sm:pt-0">
+              <Badge variant={priorityVariant(testCase.priority)} className="capitalize flex-shrink-0 text-xs px-2 py-1">
                 {testCase.priority}
               </Badge>
-              <Badge variant="outline" className="text-xs flex-shrink-0">
+              <Badge variant="outline" className="text-xs px-2 py-1 flex-shrink-0">
                 v{testCase.version}
               </Badge>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4">
+        <CardContent className="space-y-3 p-3">
           <div>
-            <h4 className="font-semibold text-xs sm:text-sm mb-1">Description</h4>
-            <p className="text-muted-foreground text-xs sm:text-sm break-words">{testCase.description}</p>
+            <h4 className="font-semibold text-sm mb-1">Description</h4>
+            <p className="text-muted-foreground text-sm break-words">{testCase.description}</p>
           </div>
           <Separator />
           <div>
-            <h4 className="font-semibold text-xs sm:text-sm mb-1">Steps</h4>
-            <ol className="list-decimal list-inside space-y-0.5 text-xs sm:text-sm text-muted-foreground break-words">
-              {testCase.testSteps.slice(0, 5).map((step, i) => (
-                <li key={i} className="break-words text-xs sm:text-sm">{step}</li>
+            <h4 className="font-semibold text-sm mb-1">Steps</h4>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground break-words">
+              {testCase.testSteps.slice(0, 3).map((step, i) => (
+                <li key={i} className="break-words">{step}</li>
               ))}
-              {testCase.testSteps.length > 5 && (
-                <li className="text-xs text-muted-foreground">+ {testCase.testSteps.length - 5} more steps</li>
+              {testCase.testSteps.length > 3 && (
+                <li className="text-sm text-muted-foreground">+ {testCase.testSteps.length - 3} more</li>
               )}
             </ol>
           </div>
           <Separator />
           <div>
-            <h4 className="font-semibold text-xs sm:text-sm mb-1">Expected</h4>
-            <p className="text-muted-foreground text-xs sm:text-sm break-words">{testCase.expectedResults}</p>
+            <h4 className="font-semibold text-sm mb-1">Expected</h4>
+            <p className="text-muted-foreground text-sm break-words">{testCase.expectedResults}</p>
           </div>
           <Separator />
-          <div className="grid grid-cols-2 gap-1 sm:gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
               <span className="font-medium text-muted-foreground">Created:</span> <span className="text-muted-foreground">{new Date(testCase.createdAt).toLocaleDateString()}</span>
             </div>
@@ -372,8 +372,8 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
             <>
               <Separator />
               <div>
-                <h4 className="font-semibold text-xs sm:text-sm mb-1">Trace</h4>
-                <p className="text-muted-foreground text-xs sm:text-sm break-words">{testCase.requirementsTrace}</p>
+                <h4 className="font-semibold text-sm mb-1">Trace</h4>
+                <p className="text-muted-foreground text-sm break-words">{testCase.requirementsTrace}</p>
               </div>
             </>
           )}
