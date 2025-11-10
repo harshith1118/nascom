@@ -123,16 +123,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6 md:px-8 shadow-sm">
+        <header className="sticky top-0 z-10 flex h-14 sm:h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 shadow-sm">
           <SidebarTrigger className="md:hidden rounded-lg p-2 transition-colors duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"/>
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold md:text-xl">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-sm sm:text-base font-semibold truncate">
               {navItems.find(item => item.href === pathname)?.label || "MediTestAI"}
             </h1>
           </div>
         </header>
-        <main className="flex-1 p-6 md:p-8 bg-gradient-to-br from-background to-muted/20 min-h-screen animate-in fade-in duration-500">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main className="flex-1 p-3 sm:p-6 bg-gradient-to-br from-background to-muted/20 min-h-screen animate-in fade-in duration-500">
+          <div className="max-w-7xl mx-auto space-y-4">
             {children}
           </div>
         </main>

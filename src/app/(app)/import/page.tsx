@@ -40,7 +40,7 @@ export default function ImportPage() {
     const file = e.target.files?.[0];
     if (file) {
       setFileName(file.name);
-      
+
       const reader = new FileReader();
       reader.onload = async (event) => {
         const content = event.target?.result as string;
@@ -68,7 +68,7 @@ export default function ImportPage() {
       if (parsedTestCases.length === 0) {
         throw new Error("Could not find any valid test cases to import. Please check the format.");
       }
-      
+
       setTestCases(parsedTestCases);
       setComplianceReport('Compliance status of imported tests is unknown. Run a compliance check for a full report.');
 
@@ -91,39 +91,41 @@ export default function ImportPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Import Existing Test Cases</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Import Existing Test Cases</CardTitle>
           <CardDescription>
             Paste your existing test cases below. The tool will attempt to parse them into a structured format.
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <Alert className="mb-6">
+            <Alert className="mb-4 sm:mb-6">
                 <FileUp className="h-4 w-4" />
                 <AlertTitle>Formatting Tip</AlertTitle>
-                <AlertDescription>
+                <AlertDescription className="text-sm">
                     For best results, ensure your test cases are in a clear Markdown format, with distinct sections for Case ID, Title, Steps, etc.
                 </AlertDescription>
             </Alert>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="flex flex-wrap gap-2 mb-4">
-                <Button 
-                  variant={showTextArea ? "default" : "outline"} 
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-2 mb-4">
+                <Button
+                  variant={showTextArea ? "default" : "outline"}
                   type="button"
                   onClick={() => setShowTextArea(true)}
                   disabled={isLoading}
+                  className="flex-1 min-w-[140px]"
                 >
                   <FileUp className="mr-2 h-4 w-4" />
                   Paste Content
                 </Button>
-                <Button 
-                  variant={showTextArea ? "outline" : "default"} 
+                <Button
+                  variant={showTextArea ? "outline" : "default"}
                   type="button"
                   onClick={() => setShowTextArea(false)}
                   disabled={isLoading}
+                  className="flex-1 min-w-[140px]"
                 >
                   <FileUp className="mr-2 h-4 w-4" />
                   Upload File
@@ -151,7 +153,7 @@ Example format:
 3. Click login button
 **Expected Results:** User is successfully logged in
 **Priority:** High`}
-                          className="min-h-[300px] resize-y"
+                          className="min-h-[200px] sm:min-h-[300px] resize-y text-sm"
                           {...field}
                         />
                       ) : (
@@ -166,15 +168,15 @@ Example format:
                           />
                           <label
                             htmlFor="file-upload"
-                            className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
+                            className="flex flex-col items-center justify-center w-full h-32 sm:h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
                           >
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                              <FileUp className="w-10 h-10 mb-3 text-muted-foreground" />
+                            <div className="flex flex-col items-center justify-center pt-3 sm:pt-5 pb-3 sm:pb-6 px-2">
+                              <FileUp className="w-8 h-8 sm:w-10 sm:h-10 mb-2 sm:mb-3 text-muted-foreground" />
                               {fileName ? (
-                                <p className="font-semibold text-primary">{fileName}</p>
+                                <p className="font-semibold text-primary text-sm sm:text-base truncate max-w-full">{fileName}</p>
                               ) : (
                                 <>
-                                  <p className="mb-2 text-sm text-muted-foreground">
+                                  <p className="mb-1 sm:mb-2 text-xs sm:text-sm text-muted-foreground text-center">
                                     <span className="font-semibold">Click to upload</span> or drag and drop
                                   </p>
                                   <p className="text-xs text-muted-foreground">TXT, MD, CSV, or JSON files</p>
@@ -189,7 +191,7 @@ Example format:
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isLoading} size="lg">
+              <Button type="submit" disabled={isLoading} size="lg" className="w-full sm:w-auto">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />

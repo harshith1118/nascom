@@ -49,13 +49,13 @@ export default function GeneratePage() {
     const file = e.target.files?.[0];
     if (file) {
       setFileName(file.name);
-      
+
       try {
         // Process the file based on its type
         const content = await import('@/lib/file-processor').then(
           ({ processFile }) => processFile(file)
         );
-        
+
         form.setValue('requirements', content, { shouldValidate: true });
       } catch (error) {
         console.error('File processing error:', error);
@@ -104,13 +104,13 @@ export default function GeneratePage() {
     const file = e.target.files?.[0];
     if (file) {
       setCodeFileName(file.name);
-      
+
       try {
         // Process the code file
         const content = await import('@/lib/file-processor').then(
           ({ processFile }) => processFile(file)
         );
-        
+
         setCodeContext(content);
         toast({
           title: 'Code file loaded',
@@ -137,35 +137,35 @@ export default function GeneratePage() {
         title: 'Generating Test Cases',
         description: 'AI is analyzing your requirements. This may take 10-30 seconds...',
       });
-      
+
       const generateInput = {
         productRequirementDocument: values.requirements,
         sourceCodeContext: includeCodeContext ? codeContext : undefined,
         requirementsTrace: values.requirements.substring(0, 200) + (values.requirements.length > 200 ? '...' : '') // First 200 chars as trace
       };
-      
+
       const result = await generateTests(generateInput);
-      
+
       if (!result) {
         throw new Error("The AI service returned an empty response. Please try again.");
       }
-      
+
       if (!result.testCases || result.testCases.trim() === "") {
         throw new Error("The AI failed to generate test cases. Please try again or refine your requirements to be more specific.");
       }
-      
+
       // Check for error messages in the response
       if (result.testCases.includes("Error:") || result.testCases.includes("Could not parse")) {
         throw new Error("The AI encountered an error while generating test cases. Please try again with different requirements.");
       }
-      
+
       const parsedTestCases = parseTestCasesMarkdown(result.testCases);
-      
+
       // Validate that we got test cases
       if (parsedTestCases.length === 0) {
         throw new Error("The AI response could not be parsed into test cases. Please try again or check your requirements format.");
       }
-      
+
       setTestCases(parsedTestCases);
       setComplianceReport(result.complianceReport || "No compliance information provided.");
 
@@ -177,7 +177,7 @@ export default function GeneratePage() {
       router.push('/manage');
     } catch (error) {
       console.error('Failed to generate test cases:', error);
-      
+
       // Handle timeout errors specifically
       if (error instanceof Error && error.message.includes('timed out')) {
         toast({
@@ -206,34 +206,36 @@ export default function GeneratePage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Generate Test Cases from Requirements</CardTitle>
-        <CardDescription>
-          Upload your Product Requirement Document (PRD), specifications, or user stories below. 
+        <CardTitle className="text-lg sm:text-xl">Generate Test Cases from Requirements</CardTitle>
+        <CardDescription className="text-sm sm:text-base">
+          Upload your Product Requirement Document (PRD), specifications, or user stories below.
           The AI will analyze the text and generate a comprehensive set of test cases.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Alert className="mb-6">
+        <Alert className="mb-4 sm:mb-6">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Performance Note</AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="text-sm">
             AI processing may take 10-30 seconds. Please be patient after clicking "Generate Test Cases".
           </AlertDescription>
         </Alert>
-        
-        <div className="flex flex-wrap gap-2 mb-4">
-          <Button 
-            variant={showTextArea ? "outline" : "default"} 
+
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2 mb-4">
+          <Button
+            variant={showTextArea ? "outline" : "default"}
             onClick={() => setShowTextArea(false)}
             disabled={isLoading}
+            className="flex-1 min-w-[140px]"
           >
             <UploadCloud className="mr-2 h-4 w-4" />
             Upload File
           </Button>
-          <Button 
-            variant={showTextArea ? "default" : "outline"} 
+          <Button
+            variant={showTextArea ? "default" : "outline"}
             onClick={handlePasteRequirements}
             disabled={isLoading}
+            className="flex-1 min-w-[140px]"
           >
             <Clipboard className="mr-2 h-4 w-4" />
             Paste Requirements
@@ -241,7 +243,7 @@ export default function GeneratePage() {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
             <FormField
               control={form.control}
               name="requirements"
@@ -261,15 +263,15 @@ export default function GeneratePage() {
                         />
                         <label
                           htmlFor="file-upload"
-                          className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
+                          className="flex flex-col items-center justify-center w-full h-32 sm:h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
                         >
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
+                          <div className="flex flex-col items-center justify-center pt-3 sm:pt-5 pb-3 sm:pb-6 px-2">
+                            <UploadCloud className="w-8 h-8 sm:w-10 h-10 mb-2 sm:mb-3 text-muted-foreground" />
                             {fileName ? (
-                              <p className="font-semibold text-primary">{fileName}</p>
+                              <p className="font-semibold text-primary text-sm sm:text-base truncate max-w-full">{fileName}</p>
                             ) : (
                               <>
-                                <p className="mb-2 text-sm text-muted-foreground">
+                                <p className="mb-1 sm:mb-2 text-xs sm:text-sm text-muted-foreground">
                                   <span className="font-semibold">Click to upload</span> or drag and drop
                                 </p>
                                 <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, MD, TXT, or XML files</p>
@@ -292,16 +294,17 @@ The system should validate user credentials against a secure database.
 The login session should expire after 30 minutes of inactivity.
 
 All login attempts should be logged for security auditing.`}
-                          className="min-h-[300px] resize-y"
+                          className="min-h-[200px] sm:min-h-[300px] resize-y text-sm"
                           {...form.register('requirements')}
                           disabled={isLoading}
                         />
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={copyToClipboard}
                           disabled={!form.getValues('requirements')}
+                          className="w-full sm:w-auto"
                         >
                           <Clipboard className="mr-2 h-4 w-4" />
                           Copy to Clipboard
@@ -313,7 +316,7 @@ All login attempts should be logged for security auditing.`}
                 </FormItem>
               )}
             />
-            
+
             {/* Code Context Section */}
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
@@ -328,10 +331,10 @@ All login attempts should be logged for security auditing.`}
                   Include Source Code Context
                 </label>
               </div>
-              
+
               {includeCodeContext && (
-                <div className="border rounded-lg p-4 bg-muted/20">
-                  <h4 className="font-medium mb-2">Upload Source Code Files</h4>
+                <div className="border rounded-lg p-3 sm:p-4 bg-muted/20">
+                  <h4 className="font-medium mb-2 text-sm sm:text-base">Upload Source Code Files</h4>
                   <div className="relative">
                     <Input
                       id="code-upload"
@@ -343,15 +346,15 @@ All login attempts should be logged for security auditing.`}
                     />
                     <label
                       htmlFor="code-upload"
-                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
+                      className="flex flex-col items-center justify-center w-full h-24 sm:h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted"
                     >
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                      <div className="flex flex-col items-center justify-center pt-3 sm:pt-5 pb-3 sm:pb-6 px-2">
+                        <UploadCloud className="w-6 h-6 sm:w-8 h-8 mb-1 sm:mb-2 text-muted-foreground" />
                         {codeFileName ? (
-                          <p className="font-semibold text-primary text-sm">{codeFileName}</p>
+                          <p className="font-semibold text-primary text-xs sm:text-sm truncate max-w-full">{codeFileName}</p>
                         ) : (
                           <>
-                            <p className="mb-1 text-sm text-muted-foreground">
+                            <p className="mb-1 text-xs sm:text-sm text-muted-foreground">
                               <span className="font-semibold">Click to upload</span> source code
                             </p>
                             <p className="text-xs text-muted-foreground">Supported: TS, JS, PY, Java, C++, C#, Go, Ruby, PHP, SQL, HTML, CSS</p>
@@ -360,7 +363,7 @@ All login attempts should be logged for security auditing.`}
                       </div>
                     </label>
                     {codeContext && (
-                      <div className="mt-2 p-2 bg-muted rounded text-xs max-h-32 overflow-y-auto">
+                      <div className="mt-2 p-2 bg-muted rounded text-xs max-h-20 sm:max-h-32 overflow-y-auto">
                         {codeContext.substring(0, 200)}...
                       </div>
                     )}
@@ -368,8 +371,8 @@ All login attempts should be logged for security auditing.`}
                 </div>
               )}
             </div>
-            
-            <Button type="submit" disabled={isLoading || !form.formState.isValid} size="lg">
+
+            <Button type="submit" disabled={isLoading || !form.formState.isValid} size="lg" className="w-full sm:w-auto">
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />

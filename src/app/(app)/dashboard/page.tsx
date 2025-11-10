@@ -62,11 +62,11 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-8">
       <Card className="overflow-hidden">
-        <div className="grid md:grid-cols-2">
-            <div className="p-8 flex flex-col justify-center">
-                <h1 className="text-3xl font-bold text-foreground mb-2">Welcome to MediTestAI</h1>
+        <div className="flex flex-col md:grid md:grid-cols-2">
+            <div className="p-6 sm:p-8 flex flex-col justify-center">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Welcome to MediTestAI</h1>
                 <p className="text-muted-foreground mb-6">Your AI-powered partner for automating healthcare software testing. Streamline your QA process, ensure compliance, and accelerate your time-to-market with intelligent test case generation.</p>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                     <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                         <Link href="/generate">Generate New Tests <ArrowRight className="ml-2 h-5 w-5"/></Link>
                     </Button>
@@ -79,18 +79,18 @@ export default function DashboardPage() {
         </div>
       </Card>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {features.map((feature) => (
           <Card key={feature.title} className="flex flex-col">
             <CardHeader className="flex-row items-center gap-4 pb-4">
               <div className="bg-primary/10 p-3 rounded-lg">
                 <feature.icon className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle className="text-lg">{feature.title}</CardTitle>
+              <CardTitle className="text-base sm:text-lg">{feature.title}</CardTitle>
             </CardHeader>
             <CardContent className="flex-grow flex flex-col">
-              <CardDescription className="flex-grow">{feature.description}</CardDescription>
-              <Button asChild variant="outline" className="mt-6 w-full">
+              <CardDescription className="flex-grow mb-4">{feature.description}</CardDescription>
+              <Button asChild variant="outline" className="w-full">
                 <Link href={feature.link}>{feature.cta} <ArrowRight className="ml-2 h-4 w-4"/></Link>
               </Button>
             </CardContent>

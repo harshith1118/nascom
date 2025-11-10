@@ -237,7 +237,7 @@ export default function TraceabilityMatrixPage() {
                           <TableCell>
                             <div className="space-y-2 max-h-40 overflow-y-auto">
                               {testCasesForRequirement.map((tc) => (
-                                <div key={tc.id} className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-muted/30 rounded-md border">
+                                <div key={`${tc.id}-${tc.caseId}`} className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-muted/30 rounded-md border">
                                   <div className="flex items-center gap-2">
                                     <Badge variant="secondary" className="text-xs px-2 py-1">
                                       {tc.caseId}

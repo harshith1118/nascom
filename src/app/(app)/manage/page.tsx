@@ -59,8 +59,8 @@ export default function ManagePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap justify-between items-center gap-4">
-        <h1 className="text-3xl font-bold">Generated Test Cases</h1>
+      <div className="flex flex-col sm:flex-row flex-wrap justify-between items-center gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Generated Test Cases</h1>
         <Button onClick={copyAllTestCases} variant="outline" disabled={isCopying}>
           {isCopying ? (
             <>
@@ -80,16 +80,24 @@ export default function ManagePage() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertTitle>Compliance Summary</AlertTitle>
-          <AlertDescription className="whitespace-pre-line">
+          <AlertDescription className="whitespace-pre-line text-sm">
             {complianceReport}
           </AlertDescription>
         </Alert>
       )}
 
-      <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
-        {testCases.map((tc, index) => (
-          <TestCaseCard key={tc.id} testCase={tc} index={index} />
-        ))}
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        {testCases
+          .slice()
+          .sort((a, b) => {
+            // Sort by caseId, handling both "TC-XXX" and numeric formats
+            const aNum = parseInt(a.caseId.replace(/\D/g, ''), 10) || 0;
+            const bNum = parseInt(b.caseId.replace(/\D/g, ''), 10) || 0;
+            return aNum - bNum;
+          })
+          .map((tc, index) => (
+            <TestCaseCard key={`${tc.id}-${index}`} testCase={tc} index={index} />
+          ))}
       </div>
     </div>
   );

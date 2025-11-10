@@ -321,61 +321,64 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
   return (
     <>
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start gap-4">
-            <div>
-              <CardDescription>{testCase.caseId}</CardDescription>
-              <CardTitle className="text-xl">{testCase.title}</CardTitle>
+        <CardHeader className="pb-2 sm:pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-2 sm:gap-3">
+            <div className="flex-1 min-w-0">
+              <CardDescription className="text-xs sm:text-sm">{testCase.caseId}</CardDescription>
+              <CardTitle className="text-sm sm:text-base md:text-lg truncate">{testCase.title}</CardTitle>
             </div>
-            <div className="flex flex-col items-end space-y-1">
-              <Badge variant={priorityVariant(testCase.priority)} className="capitalize">
-                {testCase.priority} Priority
+            <div className="flex flex-row sm:flex-col gap-1 sm:gap-2 items-center sm:items-end">
+              <Badge variant={priorityVariant(testCase.priority)} className="capitalize flex-shrink-0 text-xs">
+                {testCase.priority}
               </Badge>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs flex-shrink-0">
                 v{testCase.version}
               </Badge>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2 sm:space-y-3 p-3 sm:p-4">
           <div>
-            <h4 className="font-semibold text-sm mb-2">Description</h4>
-            <p className="text-muted-foreground text-sm">{testCase.description}</p>
+            <h4 className="font-semibold text-xs sm:text-sm mb-1">Description</h4>
+            <p className="text-muted-foreground text-xs sm:text-sm break-words">{testCase.description}</p>
           </div>
           <Separator />
           <div>
-            <h4 className="font-semibold text-sm mb-2">Test Steps</h4>
-            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-              {testCase.testSteps.map((step, i) => (
-                <li key={i}>{step}</li>
+            <h4 className="font-semibold text-xs sm:text-sm mb-1">Steps</h4>
+            <ol className="list-decimal list-inside space-y-0.5 text-xs sm:text-sm text-muted-foreground break-words">
+              {testCase.testSteps.slice(0, 5).map((step, i) => (
+                <li key={i} className="break-words text-xs sm:text-sm">{step}</li>
               ))}
+              {testCase.testSteps.length > 5 && (
+                <li className="text-xs text-muted-foreground">+ {testCase.testSteps.length - 5} more steps</li>
+              )}
             </ol>
           </div>
           <Separator />
           <div>
-            <h4 className="font-semibold text-sm mb-2">Expected Results</h4>
-            <p className="text-muted-foreground text-sm">{testCase.expectedResults}</p>
+            <h4 className="font-semibold text-xs sm:text-sm mb-1">Expected</h4>
+            <p className="text-muted-foreground text-xs sm:text-sm break-words">{testCase.expectedResults}</p>
           </div>
           <Separator />
-          <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+          <div className="grid grid-cols-2 gap-1 sm:gap-2 text-xs">
             <div>
-              <span className="font-medium">Created:</span> {new Date(testCase.createdAt).toLocaleDateString()}
+              <span className="font-medium text-muted-foreground">Created:</span> <span className="text-muted-foreground">{new Date(testCase.createdAt).toLocaleDateString()}</span>
             </div>
             <div>
-              <span className="font-medium">Updated:</span> {new Date(testCase.updatedAt).toLocaleDateString()}
+              <span className="font-medium text-muted-foreground">Updated:</span> <span className="text-muted-foreground">{new Date(testCase.updatedAt).toLocaleDateString()}</span>
             </div>
           </div>
           {testCase.requirementsTrace && (
             <>
               <Separator />
               <div>
-                <h4 className="font-semibold text-sm mb-1">Requirements Trace</h4>
-                <p className="text-muted-foreground text-sm">{testCase.requirementsTrace}</p>
+                <h4 className="font-semibold text-xs sm:text-sm mb-1">Trace</h4>
+                <p className="text-muted-foreground text-xs sm:text-sm break-words">{testCase.requirementsTrace}</p>
               </div>
             </>
           )}
         </CardContent>
-        <CardFooter className="flex-wrap gap-2">
+        <CardFooter className="flex flex-wrap gap-2 justify-center sm:justify-start">
           <Button variant="outline" size="sm" onClick={copyTestCase}>
             <Copy className="mr-2 h-4 w-4" />
             Copy
