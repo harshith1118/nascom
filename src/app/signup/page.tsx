@@ -46,7 +46,11 @@ export default function SignupPage() {
         title: 'Account Created',
         description: 'Your account has been created successfully.',
       });
-
+      
+      // Wait a brief moment to allow the auth state to propagate to context
+      // This ensures the AppLayout has the updated user state when redirected
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Signup error:', error);

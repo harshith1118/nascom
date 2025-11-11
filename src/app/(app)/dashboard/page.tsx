@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Bot, ShieldCheck, FileUp, ArrowRight, Clock } from "lucide-react"
+import { Bot, ShieldCheck, FileUp, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 // Add performance optimizations
@@ -37,27 +35,7 @@ const features = [
 ]
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { currentUser, loading } = useUser();
-
-  // Redirect to signup if user is not authenticated (after loading completes)
-  useEffect(() => {
-    if (!loading && currentUser === null) {
-      router.push('/signup');
-    }
-  }, [currentUser, loading, router]);
-
-  // Show loading state while checking authentication
-  if (loading || (!loading && currentUser === null)) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
-          <p className="text-muted-foreground">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
+  const { currentUser } = useUser();
 
   return (
     <div className="flex flex-col gap-8">

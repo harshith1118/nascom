@@ -13,7 +13,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar"
 import { Logo } from "@/components/Logo"
-import { Home, Bot, ShieldCheck, FileUp, FolderKanban, LogOut, Link2 } from "lucide-react"
+import { Home, Bot, ShieldCheck, FileUp, FolderKanban, LogOut, Link2, Clock } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/contexts/UserContext"
+import { useEffect } from "react"
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -40,7 +41,26 @@ const navItems = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { currentUser, logout } = useUser()
+  const { currentUser, loading, logout } = useUser()
+
+  // Handle redirect if not authenticated
+  useEffect(() => {
+    if (!loading && currentUser === null) {
+      router.push('/signup');
+    }
+  }, [currentUser, loading, router]);
+
+  // Show loading state while checking authentication
+  if (loading || (!loading && currentUser === null)) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
