@@ -103,17 +103,6 @@ The system uses Google's Gemini AI through the LangChain framework:
    - Limited test case generation to 3 per request
    - Streamlined output formatting
 
-## Demo Limitations
-
-The following features are temporarily suspended in the demo version:
-- Export to Jira
-- Export to Azure DevOps
-- PDF Download
-- AI modification of test cases
-- Full compliance checking
-
-These features will be available in the full production version.
-
 ## Setup Instructions
 
 1. **Environment Setup**:
