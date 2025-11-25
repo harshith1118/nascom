@@ -148,7 +148,40 @@ export default function GeneratePage() {
       const generateInput = {
         productRequirementDocument: values.requirements,
         sourceCodeContext: includeCodeContext ? codeContext : undefined,
-        requirementsTrace: values.requirements.substring(0, 500) + (values.requirements.length > 500 ? '...' : '') // Increase trace length to 500 chars for more context
+        requirementsTrace: (() => {
+          // Analyze requirements for compliance and business context
+          const reqText = values.requirements.toLowerCase();
+
+          // Identify relevant compliance and business elements
+          const elements = [];
+
+          // Look for compliance standards
+          if (reqText.includes('hipaa')) elements.push('HIPAA');
+          if (reqText.includes('gdpr')) elements.push('GDPR');
+          if (reqText.includes('fda')) elements.push('FDA');
+          if (reqText.includes('nist')) elements.push('NIST');
+          if (reqText.includes('iso')) elements.push('ISO');
+
+          // Look for business considerations
+          if (reqText.includes('roi') || reqText.includes('cost') || reqText.includes('financial')) elements.push('ROI/Business');
+          if (reqText.includes('privacy') || reqText.includes('security') || reqText.includes('data protection')) elements.push('Privacy');
+          if (reqText.includes('ehr') || reqText.includes('electronic health')) elements.push('EHR');
+          if (reqText.includes('accuracy')) elements.push('Accuracy');
+
+          // If we found compliance elements, return those
+          if (elements.length > 0) {
+            return elements.join(', ');
+          } else {
+            // Fallback to extracting a meaningful short description from the first line
+            const lines = values.requirements.split('\n').filter(line => line.trim() !== '');
+            if (lines.length > 0) {
+              // Get the first non-empty, meaningful line as the trace (up to 100 chars)
+              const firstLine = lines[0].trim();
+              return firstLine.substring(0, 100) + (firstLine.length > 100 ? '...' : '');
+            }
+            return 'General Requirements';
+          }
+        })() // Create a requirements trace with relevant compliance/business elements
       };
 
       const result = await generateTests(generateInput);

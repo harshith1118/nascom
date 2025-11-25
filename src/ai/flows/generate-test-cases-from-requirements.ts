@@ -51,45 +51,48 @@ export async function generateTestCasesFromRequirements(
     
     console.log('Initializing LangChain model with configuration');
     
-    // Initialize LangChain model with more robust configuration - using faster model for shorter response time
+    // Initialize LangChain model with performance optimizations for faster response
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: "gemini-2.5-flash", // Using gemini-2.5-flash which is optimized for speed
       maxRetries: 1,  // Reduce retries to prevent extended timeouts
-      temperature: 0.3, // Slightly higher temperature for faster generation
-      timeout: 30000, // Reduce timeout to 30 seconds to prevent 504s
+      temperature: 0.5, // Higher temperature for faster, more varied output
+      timeout: 25000, // Standard timeout to balance speed and completion
+      maxTokens: 1200, // Limit output tokens to prevent long generation times
     });
     
     console.log('LangChain model initialized successfully');
 
-    let prompt = `You are an expert QA engineer. Generate exactly 3 test cases for the provided software requirements in the specified format, and include compliance verification for healthcare standards (FDA, ISO 13485, GDPR, HIPAA).
+    let prompt = `You are an expert QA engineer. Generate exactly 3 test cases for the provided requirements in the format below.
 
 Requirements:
 ${productRequirementDocument || sourceCodeContext}
 
-Generate test cases in this EXACT format with NO bullet points in Expected Results:
+Format:
 ### Case ID: TC-001
-**Title:** [Brief title]
+**Title:** [Brief title with key details]
 **Description:** [Brief description]
 **Test Steps:**
-1. [Actionable step 1]
-2. [Actionable step 2]
-3. [Actionable step 3]
-**Expected Results:** [Specific outcome description in plain text, NOT as bullet points or list items]
+1. [Actionable step]
+2. [Actionable step]
+3. [Actionable step]
+**Expected Results:** [Specific measurable outcome]
 **Priority:** [High/Medium/Low]
-**Requirements Trace:** [${requirementsTrace || 'N/A'}]
+**Requirements Trace:** [${requirementsTrace ? requirementsTrace.substring(0, 50) + (requirementsTrace.length > 50 ? '...' : '') : 'N/A'}]
+
+Include technical details, performance metrics, and regulatory compliance where relevant.
 
 Separate each test case with:
 ---
 
 Compliance assessment:
-[Include a concise compliance assessment for the generated test cases against healthcare standards such as FDA, ISO 13485, GDPR, and HIPAA. Keep this assessment under 100 words focusing on patient data protection, security measures, audit trails, and medical device validation requirements. Do not format this as a test case with Title, Description, etc. Just provide the assessment text directly.]
+[Concise compliance assessment focusing on healthcare standards like FDA, ISO 13485, GDPR, HIPAA under 100 words]
 
 Test Cases:`;
 
     // Create messages for the model
     const messages = [
-      new SystemMessage("You are an expert QA engineer specializing in healthcare software testing. Generate test cases in the specified format with complete information."),
+      new SystemMessage("You are an expert QA engineer. Generate concise, technical test cases with specific implementation details, performance metrics, and regulatory compliance information when relevant."),
       new HumanMessage(prompt)
     ];
 
@@ -98,10 +101,10 @@ Test Cases:`;
     // Add a try-catch specifically for the API call to provide more specific error handling
     let result;
     try {
-      // Use Promise.race to implement a shorter timeout for the API call to prevent 504s
+      // Use Promise.race to implement a timeout for the API call to prevent 504s
       result = await Promise.race([
         model.invoke(messages),
-        new Promise((_, reject) => 
+        new Promise((_, reject) =>
           setTimeout(() => reject(new Error('API call timed out after 25 seconds')), 25000)
         )
       ]);
