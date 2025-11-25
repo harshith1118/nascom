@@ -58,20 +58,20 @@ export default function TraceabilityMatrixPage() {
     if (!trace || trace === 'N/A' || trace === 'No Requirements Trace') {
       return { docTitle: 'No Requirements', sections: [] };
     }
-    
+
     // Extract document title
     const titleMatch = trace.match(/# Software Requirements for ([^\n\r]+)/);
     const docTitle = titleMatch ? titleMatch[1] : 'Requirements Document';
-    
+
     // Split by sections (##) and format
     const sections = trace.split(/\n\s*##\s/).filter(s => s.trim() !== '');
-    
+
     // Take first section and extract its subsections
     const firstSection = sections[0];
     if (!firstSection) {
       return { docTitle, sections: [] };
     }
-    
+
     // Split into lines and process
     const lines = firstSection.split('\n').filter(line => line.trim() !== '');
     const formattedLines = lines.slice(0, 6).map(line => {
@@ -85,7 +85,7 @@ export default function TraceabilityMatrixPage() {
         return { type: 'text', content: line.trim() };
       }
     });
-    
+
     return { docTitle, sections: formattedLines };
   };
 
@@ -236,8 +236,13 @@ export default function TraceabilityMatrixPage() {
                           </TableCell>
                           <TableCell>
                             <div className="space-y-2 max-h-40 overflow-y-auto">
-                              {testCasesForRequirement.map((tc) => (
-                                <div key={`${tc.id}-${tc.caseId}`} className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-muted/30 rounded-md border">
+                              {testCasesForRequirement
+                                .filter((tc, index, self) =>
+                                  // Remove duplicates based on the combination of id and caseId
+                                  index === self.findIndex(t => t.id === tc.id && t.caseId === tc.caseId)
+                                )
+                                .map((tc, idx) => (
+                                <div key={`${tc.id}-${tc.caseId}-${idx}`} className="flex flex-col sm:flex-row sm:items-center gap-2 p-3 bg-muted/30 rounded-md border">
                                   <div className="flex items-center gap-2">
                                     <Badge variant="secondary" className="text-xs px-2 py-1">
                                       {tc.caseId}

@@ -138,10 +138,17 @@ export default function GeneratePage() {
         description: 'AI is analyzing your requirements. This may take 10-30 seconds...',
       });
 
+      // Validate that the requirements are meaningful before sending to AI
+      // This is an additional validation layer on the client side for better UX
+      // The server side validation is the primary protection
+      if (!values.requirements || values.requirements.trim().length < 50) {
+        throw new Error('Requirements must be at least 50 characters long and contain meaningful content.');
+      }
+
       const generateInput = {
         productRequirementDocument: values.requirements,
         sourceCodeContext: includeCodeContext ? codeContext : undefined,
-        requirementsTrace: values.requirements.substring(0, 200) + (values.requirements.length > 200 ? '...' : '') // First 200 chars as trace
+        requirementsTrace: values.requirements.substring(0, 500) + (values.requirements.length > 500 ? '...' : '') // Increase trace length to 500 chars for more context
       };
 
       const result = await generateTests(generateInput);

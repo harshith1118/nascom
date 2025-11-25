@@ -62,9 +62,15 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             setCurrentUser(user);
             localStorage.setItem('currentUser', JSON.stringify(user));
           }
-        } catch (error) {
-          console.error('Error fetching user data:', error);
-          // Fallback to basic user data
+        } catch (firestoreError: any) {
+          console.error('Firestore permission error - user data not accessible:', firestoreError);
+          // Check if it's a permission error specifically
+          if (firestoreError.code === 'permission-denied' ||
+              firestoreError.message?.includes('permission') ||
+              firestoreError.message?.includes('Permission')) {
+            console.warn('Permission error detected - user will be logged in with minimal data');
+          }
+          // Fallback to basic user data when Firestore access fails due to permissions
           const user: User = {
             id: firebaseUser.uid,
             name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',

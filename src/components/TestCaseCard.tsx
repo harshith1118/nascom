@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { Bot, Copy, Share2, FileDown, AlertCircle, X, Check, Loader2 } from "lucide-react"
+import { Bot, Copy, Share2, FileDown, AlertCircle, X, Check, Loader2, Plus } from "lucide-react"
 import { type TestCase, TestCaseFeedback } from "@/lib/types"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
@@ -125,27 +125,27 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
     try {
       // Prepare the current test case in markdown format for AI processing
       const currentTestCaseMarkdown = testCaseToMarkdown(testCase);
-      
+
       // Call the AI modification flow
       const result = await modifyTestCasesWithNaturalLanguage({
         testCases: currentTestCaseMarkdown,
         modificationInstructions: modificationInstructions
       });
-      
+
       if (!result || !result.modifiedTestCases) {
         throw new Error("AI service returned an empty response");
       }
-      
+
       // Parse the modified test cases - we need to handle the case where
       // the AI returns the test case in a different format
       const parsedTestCases = await import("@/lib/parsers").then(
         ({ parseTestCasesMarkdown }) => parseTestCasesMarkdown(result.modifiedTestCases)
       );
-      
+
       if (parsedTestCases.length === 0) {
         // If parsing failed, try to extract the content manually
         // This might happen if the AI response doesn't match the expected format
-        
+
         // Create a new test case based on the AI response but preserving the ID
         const modifiedTestCase = {
           ...testCase, // Preserve the original ID and other metadata
@@ -153,41 +153,43 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
           description: result.modifiedTestCases.substring(0, 200) + "...", // Use response as description if needed
           testSteps: testCase.testSteps, // Keep original steps as fallback
           expectedResults: result.modifiedTestCases.substring(0, 300) + "...", // Use response as expected results
+          requirementsTrace: testCase.requirementsTrace, // Preserve requirements trace
           updatedAt: new Date().toISOString(), // Update the timestamp
           version: testCase.version + 1, // Increment version
         };
-        
+
         // Update the test case in the context
         updateTestCase(index, modifiedTestCase);
-        
+
         toast({
           title: "Test case modified successfully",
           description: `Test case "${testCase.title}" has been updated with AI.`,
         });
-        
+
         setIsModifyDialogOpen(false);
         setModificationInstructions("");
         return;
       }
-      
+
       // Update only the current test case with the first parsed result
       const modifiedTestCase = parsedTestCases[0];
       const updatedTestCase = {
         ...testCase, // Keep the original testCase as base to preserve ID and metadata
         ...modifiedTestCase, // Override with modified values
         id: testCase.id, // Preserve original ID
+        requirementsTrace: testCase.requirementsTrace, // Explicitly preserve the requirements trace
         version: testCase.version + 1, // Increment version
         updatedAt: new Date().toISOString(), // Update timestamp
       };
-      
+
       // Update the test case in the context
       updateTestCase(index, updatedTestCase);
-      
+
       toast({
         title: "Test case modified successfully",
         description: `Test case "${testCase.title}" has been updated with AI.`,
       });
-      
+
       // Close the dialog and reset state
       setIsModifyDialogOpen(false);
       setModificationInstructions("");
@@ -785,6 +787,7 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
               </div>
             </DialogContent>
           </Dialog>
+
         </CardFooter>
       </Card>
     </>

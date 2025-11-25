@@ -45,18 +45,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Handle redirect if not authenticated
   useEffect(() => {
-    if (!loading && currentUser === null) {
-      router.push('/signup');
+    if (!loading && currentUser === null && !pathname.startsWith('/login') && !pathname.startsWith('/signup')) {
+      router.push('/login');
     }
-  }, [currentUser, loading, router]);
+  }, [currentUser, loading, router, pathname]);
 
   // Show loading state while checking authentication
-  if (loading || (!loading && currentUser === null)) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
           <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is still null after loading, show loading state (redirect will happen via useEffect)
+  if (currentUser === null) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-spin" />
+          <p className="text-muted-foreground">Redirecting to login...</p>
         </div>
       </div>
     );

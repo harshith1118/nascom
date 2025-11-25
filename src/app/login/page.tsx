@@ -24,16 +24,16 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',
       });
-      
-      // Wait a brief moment to allow the auth state to propagate to context
-      // This ensures the AppLayout has the updated user state when redirected
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
+
+      // Wait for the user context to update with user data from Firestore
+      // This is important to ensure the AppLayout recognizes the user as authenticated
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait longer to ensure user context updates
+
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
