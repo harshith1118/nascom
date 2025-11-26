@@ -173,23 +173,17 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
       }
     }
 
-    // Only create a test case if we have some content
-    const title = titleMatch ? titleMatch[1].trim() : `Test Case ${index + 1}`;
-    if (title.toLowerCase() === 'untitled test case' && testSteps.length === 0) {
-      return; // Skip if it's an untitled case with no steps
-    }
-
     // Clean up expected results by removing any potential field markers from within the content
     let expectedResults = '';
     if (expectedResultsMatch) {
       expectedResults = expectedResultsMatch[1].trim();
       // Remove any remaining field markers that might have been captured in the content
       expectedResults = expectedResults.replace(/(?:Priority|Requirements Trace|Created|Updated|Version):\s*.*$/i, '').trim();
-      
+
       // Remove any bullet points or list formatting that might have been included
       expectedResults = expectedResults.replace(/^\*\s*/gm, '').trim();
       expectedResults = expectedResults.replace(/^\*\s*/m, '').trim(); // Sometimes bullet points appear at start only
-      
+
       // Additional cleanup: If expected results contain test case structure, extract just the content
       if (expectedResults.includes('### Case ID:') || expectedResults.includes('**Title:**') || expectedResults.includes('**Description:**')) {
         // This suggests the AI included multiple test cases in one, so we just take content before the next case ID
@@ -199,22 +193,22 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
         }
       }
     }
-    
+
     // Clean up title if it contains test case structure
-    let cleanedTitle = title;
-    if (cleanedTitle.includes('### Case ID:') || cleanedTitle.includes('**Description:**')) {
+    let title = titleMatch ? titleMatch[1].trim() : `Test Case ${index + 1}`;
+    if (title.includes('### Case ID:') || title.includes('**Description:**')) {
       // If title contains other fields, take only the first part
-      const descIndex = cleanedTitle.indexOf('**Description:**');
+      const descIndex = title.indexOf('**Description:**');
       if (descIndex !== -1) {
-        cleanedTitle = cleanedTitle.substring(0, descIndex).trim();
+        title = title.substring(0, descIndex).trim();
       } else {
-        const caseIdIndex = cleanedTitle.indexOf('### Case ID:');
+        const caseIdIndex = title.indexOf('### Case ID:');
         if (caseIdIndex !== -1) {
-          cleanedTitle = cleanedTitle.substring(0, caseIdIndex).trim();
+          title = title.substring(0, caseIdIndex).trim();
         }
       }
     }
-    
+
     // Clean up description if it contains test case structure
     let description = descriptionMatch ? descriptionMatch[1].trim() : '';
     if (description.includes('### Case ID:') || description.includes('**Test Steps:**')) {
@@ -229,17 +223,18 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
         }
       }
     }
-    
+
     // If we still don't have a description, try to use any remaining content
-    if (!description && cleanedTitle !== title) {
-      description = cleanedTitle;
-      cleanedTitle = `Test Case ${index + 1}`; // Provide default title
+    if (!description && title.toLowerCase().includes('test case')) {
+      description = title;
+      title = `Test Case ${index + 1}`;
     }
 
-    testCases.push({
+    // Create the test case object with cleaned values
+    const testCaseObject = {
       id: `tc-${Date.now()}-${index}`,
       caseId: caseIdMatch ? cleanForDisplay(caseIdMatch[1].trim()) : `TC-${String(index + 1).padStart(3, '0')}`,
-      title: cleanForDisplay(cleanedTitle),
+      title: cleanForDisplay(title),
       description: cleanForDisplay(description),
       testSteps: testSteps.map(step => cleanForDisplay(step)), // Sanitize each step
       expectedResults: cleanForDisplay(expectedResults),
@@ -248,10 +243,36 @@ export function parseTestCasesMarkdown(markdown: string): TestCase[] {
       updatedAt: new Date().toISOString(),
       version: 1,
       requirementsTrace: requirementsTrace ? cleanForDisplay(requirementsTrace) : undefined,
-    });
+    };
+
+    // Only add the test case if it has sufficient content to be meaningful
+    const hasMeaningfulContent =
+      testCaseObject.title.trim() !== '' &&
+      testCaseObject.title.toLowerCase() !== 'test case' + (index + 1) &&
+      (testCaseObject.testSteps.length > 0 || testCaseObject.description.trim() !== '' || testCaseObject.expectedResults.trim() !== '');
+
+    if (hasMeaningfulContent) {
+      testCases.push(testCaseObject);
+    }
   });
 
-  return testCases;
+  // Final filter to remove any remaining empty or invalid test cases
+  const filteredTestCases = testCases.filter(testCase => {
+    const hasSteps = testCase.testSteps && testCase.testSteps.length > 0;
+    const hasTitle = testCase.title && testCase.title.trim() !== '' &&
+      !testCase.title.toLowerCase().includes('untitled') &&
+      !testCase.title.toLowerCase().startsWith('test case') &&
+      testCase.title.toLowerCase() !== 'compliance assessment' &&
+      testCase.title.toLowerCase() !== 'compliance summary' &&
+      testCase.title.toLowerCase() !== 'compliance note';
+    const hasDescription = testCase.description && testCase.description.trim() !== '';
+    const hasExpectedResults = testCase.expectedResults && testCase.expectedResults.trim() !== '';
+
+    // A valid test case should have at least a meaningful title and either steps or description
+    return hasTitle && (hasSteps || hasDescription || hasExpectedResults);
+  });
+
+  return filteredTestCases;
 }
 
 export function testCaseToMarkdown(testCase: TestCase): string {

@@ -32,10 +32,14 @@ export async function modifyTestCasesWithNaturalLanguage(
       throw new Error('GOOGLE_API_KEY is not set in environment variables for modifying test cases. Please set GOOGLE_API_KEY in your environment variables.');
     }
     
-    // Initialize LangChain model
+    // Initialize LangChain model with performance optimizations
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: "gemini-2.5-flash",
+      maxRetries: 3,       // Allow multiple retries for network issues
+      timeout: 60000,      // 60 second timeout for complex modifications
+      maxTokens: 1500,     // Allow for comprehensive modifications
+      temperature: 0.3,    // Lower temperature for more consistent output
     });
 
     const prompt = `You are an expert QA engineer. Modify the following test cases based on the provided natural language instructions.

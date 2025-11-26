@@ -146,13 +146,31 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
         // If parsing failed, try to extract the content manually
         // This might happen if the AI response doesn't match the expected format
 
-        // Create a new test case based on the AI response but preserving the ID
+        // Try to preserve the original expected results if they exist in the AI response
+        let extractedExpectedResults = testCase.expectedResults; // Start with original expected results
+
+        // Check if the AI response contains expected results
+        const expectedResultsMatch = result.modifiedTestCases.match(/\*\*Expected Results:\*\*([^\0]*?)(?=\n\*\*(?:Priority|Requirements Trace|Created|Updated|Version):\*\*|\n###|$)/i);
+        if (expectedResultsMatch) {
+          extractedExpectedResults = expectedResultsMatch[1].trim();
+        } else {
+          // Look for simpler "Expected:" pattern
+          const simpleExpectedMatch = result.modifiedTestCases.match(/(?:^|\n)Expected:?\s*(.*?)(?=\n(?:Priority|Requirements Trace|Created|Updated|Version|Title|Case ID)|$)/i);
+          if (simpleExpectedMatch) {
+            extractedExpectedResults = simpleExpectedMatch[1].trim();
+          } else {
+            // If no structured expected results found, at least preserve the original ones
+            extractedExpectedResults = testCase.expectedResults;
+          }
+        }
+
+        // Create a new test case based on the AI response but preserving critical fields
         const modifiedTestCase = {
           ...testCase, // Preserve the original ID and other metadata
-          title: testCase.title, // Keep original title or derive from response
-          description: result.modifiedTestCases.substring(0, 200) + "...", // Use response as description if needed
-          testSteps: testCase.testSteps, // Keep original steps as fallback
-          expectedResults: result.modifiedTestCases.substring(0, 300) + "...", // Use response as expected results
+          title: testCase.title, // Keep original title unless specifically changed by AI
+          description: testCase.description, // Keep original description unless specifically changed by AI
+          testSteps: testCase.testSteps, // Keep original steps unless specifically changed by AI
+          expectedResults: extractedExpectedResults, // Use extracted or original expected results
           requirementsTrace: testCase.requirementsTrace, // Preserve requirements trace
           updatedAt: new Date().toISOString(), // Update the timestamp
           version: testCase.version + 1, // Increment version
@@ -173,11 +191,17 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
 
       // Update only the current test case with the first parsed result
       const modifiedTestCase = parsedTestCases[0];
+
+      // Ensure we don't lose expected results if the AI response didn't include them
+      const finalExpectedResults = modifiedTestCase.expectedResults || testCase.expectedResults;
+
       const updatedTestCase = {
         ...testCase, // Keep the original testCase as base to preserve ID and metadata
         ...modifiedTestCase, // Override with modified values
         id: testCase.id, // Preserve original ID
-        requirementsTrace: testCase.requirementsTrace, // Explicitly preserve the requirements trace
+        expectedResults: finalExpectedResults, // Use AI response if available, otherwise preserve original
+        requirementsTrace: testCase.requirementsTrace || modifiedTestCase.requirementsTrace, // Preserve original requirements trace if AI didn't provide one
+        createdAt: testCase.createdAt, // Preserve original creation date
         version: testCase.version + 1, // Increment version
         updatedAt: new Date().toISOString(), // Update timestamp
       };
@@ -347,13 +371,10 @@ export function TestCaseCard({ testCase, index }: TestCaseCardProps) {
           <Separator />
           <div>
             <h4 className="font-semibold text-sm mb-1">Steps</h4>
-            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground break-words">
-              {testCase.testSteps.slice(0, 3).map((step, i) => (
-                <li key={i} className="break-words">{step}</li>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground break-words max-h-40 overflow-y-auto pr-2">
+              {testCase.testSteps.map((step, i) => (
+                <li key={i} className="break-words py-1">{step}</li>
               ))}
-              {testCase.testSteps.length > 3 && (
-                <li className="text-sm text-muted-foreground">+ {testCase.testSteps.length - 3} more</li>
-              )}
             </ol>
           </div>
           <Separator />

@@ -50,15 +50,17 @@ export async function generateTestCasesFromRequirements(
     }
     
     console.log('Initializing LangChain model with configuration');
-    
-    // Initialize LangChain model with performance optimizations for faster response
+
+    // Initialize LangChain model with performance optimizations for better reliability
     const model = new ChatGoogleGenerativeAI({
       apiKey: process.env.GOOGLE_API_KEY,
       model: "gemini-2.5-flash", // Using gemini-2.5-flash which is optimized for speed
-      maxRetries: 1,  // Reduce retries to prevent extended timeouts
-      temperature: 0.5, // Higher temperature for faster, more varied output
-      timeout: 25000, // Standard timeout to balance speed and completion
-      maxTokens: 1200, // Limit output tokens to prevent long generation times
+      maxRetries: 3,  // Allow more retries to handle temporary network issues
+      temperature: 0.3, // Lower temperature for more consistent, focused output
+      timeout: 60000, // Increase timeout to accommodate more complex processing
+      maxTokens: 2000, // Increase max tokens to allow for more comprehensive output
+      // Add additional configuration for better performance
+      maxConcurrency: 5, // Limit concurrent requests to prevent overload
     });
     
     console.log('LangChain model initialized successfully');
@@ -97,46 +99,45 @@ Test Cases:`;
     ];
 
     console.log('Making API call to Google Generative AI with prompt length:', messages[1].content.toString().length);
-    
+
     // Add a try-catch specifically for the API call to provide more specific error handling
     let result;
     try {
-      // Use Promise.race to implement a timeout for the API call to prevent 504s
-      result = await Promise.race([
-        model.invoke(messages),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('API call timed out after 25 seconds')), 25000)
-        )
-      ]);
+      // Use the model's built-in timeout instead of artificial Promise.race
+      result = await model.invoke(messages);
       console.log('API call completed successfully');
     } catch (apiError) {
       console.error('Error during API call to Google Generative AI:', apiError);
-      
-      // Check if it's a timeout error
-      if (apiError instanceof Error && apiError.message.includes('timed out')) {
-        console.error('API call timed out after 25 seconds');
-        throw new Error('API request timed out. The request took too long to process. Please try again with simpler requirements.');
-      }
-      
+
       // Check if it's an authentication error
-      if (apiError instanceof Error && 
-          (apiError.message.includes('API key') || 
-           apiError.message.includes('400') || 
-           apiError.message.includes('401') || 
+      if (apiError instanceof Error &&
+          (apiError.message.includes('API key') ||
+           apiError.message.includes('400') ||
+           apiError.message.includes('401') ||
            apiError.message.includes('403'))) {
         console.error('Authentication error during API call:', apiError.message);
         throw new Error('Invalid or missing API key. Please verify your Google API key is correct and has proper permissions.');
       }
-      
+
       // Check if it's a quota/usage error
-      if (apiError instanceof Error && 
-          (apiError.message.includes('quota') || 
-           apiError.message.includes('billing') || 
+      if (apiError instanceof Error &&
+          (apiError.message.includes('quota') ||
+           apiError.message.includes('billing') ||
            apiError.message.includes('429'))) {
         console.error('Quota or billing error during API call:', apiError.message);
         throw new Error('API quota exceeded or billing issue. Please check your Google Cloud billing settings.');
       }
-      
+
+      // Check if it's a timeout error (now that we removed artificial timeout)
+      if (apiError instanceof Error &&
+          (apiError.message.includes('timeout') ||
+           apiError.message.includes('timed out') ||
+           apiError.message.includes('504') ||
+           apiError.message.includes('deadline'))) {
+        console.error('API call timed out after 60 seconds');
+        throw new Error('API request timed out. The request took too long to process. Please try again with simpler requirements or check your network connection.');
+      }
+
       // Re-throw to be caught by outer catch
       throw apiError;
     }
@@ -153,8 +154,8 @@ Test Cases:`;
     // Extract test cases and compliance report from the AI output
     let testCases = '';
     let complianceReport = '';
-    
-    // Look for various compliance section markers
+
+    // Look for various compliance section markers with better pattern matching
     let complianceIndex = text.indexOf('Compliance assessment:');
     if (complianceIndex === -1) {
       complianceIndex = text.indexOf('Compliance Note:');
@@ -162,11 +163,19 @@ Test Cases:`;
     if (complianceIndex === -1) {
       complianceIndex = text.indexOf('Compliance Summary:');
     }
-    
+    if (complianceIndex === -1) {
+      // Try looking for "Compliance:" at the start of a line
+      const complianceRegex = /\nCompliance:\s*/i;
+      const match = text.match(complianceRegex);
+      if (match) {
+        complianceIndex = match.index ? match.index + 1 : -1; // +1 to include the \n
+      }
+    }
+
     if (complianceIndex !== -1) {
       testCases = text.substring(0, complianceIndex).trim();
       complianceReport = text.substring(complianceIndex).trim();
-      
+
       // Remove the heading itself from the compliance report
       if (complianceReport.startsWith('Compliance assessment:')) {
         complianceReport = complianceReport.substring('Compliance assessment:'.length).trim();
@@ -174,37 +183,88 @@ Test Cases:`;
         complianceReport = complianceReport.substring('Compliance Note:'.length).trim();
       } else if (complianceReport.startsWith('Compliance Summary:')) {
         complianceReport = complianceReport.substring('Compliance Summary:'.length).trim();
+      } else if (complianceReport.startsWith('Compliance:')) {
+        complianceReport = complianceReport.substring('Compliance:'.length).trim();
       }
     } else {
-      // Fallback: check for other patterns that might indicate compliance content
-      // If the text ends with compliance-related content, treat it separately
+      // Fallback: Check if compliance information appears at the end of the text
+      // Split the text into blocks to identify likely test case sections vs compliance
       const lines = text.split('\n');
-      let complianceStart = -1;
-      
+      let testCaseEndIndex = -1;
+      let complianceStartIndex = -1;
+
+      // Look for the last occurrence of test case pattern before compliance keywords
       for (let i = lines.length - 1; i >= 0; i--) {
         const line = lines[i].trim();
-        if (line.includes('HIPAA') || line.includes('GDPR') || line.includes('FDA') || 
-            line.includes('ISO 13485') || line.includes('compliance') || 
-            line.toLowerCase().includes('security') || line.toLowerCase().includes('audit')) {
-          complianceStart = i;
+        if (line.startsWith('### Case ID:') || line.startsWith('**Title:**') ||
+            line.startsWith('**Test Steps:**') || line.startsWith('**Expected Results:**')) {
+          testCaseEndIndex = i;
+          break;
         }
       }
-      
-      if (complianceStart > 0) {
-        testCases = lines.slice(0, complianceStart).join('\n').trim();
-        complianceReport = lines.slice(complianceStart).join('\n').trim();
-      } else {
-        // Fallback: assume entire content is test cases
-        testCases = text;
-        complianceReport = 'Compliance verification not provided in AI response.';
+
+      // Look for compliance keywords starting from after the last test case
+      for (let i = testCaseEndIndex + 1; i < lines.length; i++) {
+        const line = lines[i].trim().toLowerCase();
+        if (line.includes('compliance') || line.includes('hipaa') ||
+            line.includes('gdpr') || line.includes('fda') ||
+            line.includes('iso 13485') || line.includes('security') ||
+            line.includes('audit') || line.startsWith('compliance')) {
+          complianceStartIndex = i;
+          break;
+        }
       }
+
+      if (complianceStartIndex !== -1) {
+        // Extract test cases up to compliance section
+        testCases = lines.slice(0, complianceStartIndex).join('\n').trim();
+        // Extract compliance report from that point onward
+        complianceReport = lines.slice(complianceStartIndex).join('\n').trim();
+      } else {
+        // If we can't clearly separate them, try to identify test cases by looking for the separator pattern
+        // Test cases are typically separated by '---'
+        const testCaseSections = text.split(/---+\s*\n/);
+        const potentialTestCases = [];
+        const potentialCompliance = [];
+
+        // Classify each section as test case or compliance
+        for (const section of testCaseSections) {
+          // If section contains test case format elements, consider it a test case
+          if (section.includes('Case ID:') || section.includes('Title:') ||
+              section.includes('Test Steps:') || section.includes('Expected Results:')) {
+            potentialTestCases.push(section);
+          } else {
+            // Otherwise, it might be compliance info
+            potentialCompliance.push(section);
+          }
+        }
+
+        if (potentialTestCases.length > 0) {
+          testCases = potentialTestCases.join('\n---\n');
+          complianceReport = potentialCompliance.join('\n').trim();
+        } else {
+          // Fallback: assume entire content is test cases if no clear pattern found
+          testCases = text;
+          complianceReport = 'Compliance verification not provided in AI response.';
+        }
+      }
+    }
+
+    // Additional cleaning: if compliance report looks like it contains test case format,
+    // it might have been incorrectly separated
+    if (complianceReport.includes('### Case ID:') || complianceReport.includes('**Title:**') ||
+        complianceReport.includes('**Test Steps:**')) {
+      // This suggests the complianceReport actually contains test cases, so swap them
+      const temp = complianceReport;
+      complianceReport = testCases;
+      testCases = temp;
     }
     
     // Clean up formatting for better display
     complianceReport = cleanForDisplay(complianceReport);
-    
+
     console.log('Successfully processed AI response, test cases length:', testCases.length);
-    
+
     return {
       testCases,
       complianceReport
