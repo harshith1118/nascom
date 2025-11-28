@@ -53,7 +53,13 @@ export default function DashboardPage() {
                     </Button>
                 </div>
             </div>
-            {/* Removed image that might be causing authentication issues */}
+            <div className="bg-muted/50 p-4 flex items-center justify-center">
+                <img
+                  src="/louis-reed-pwcKF7L4-no-unsplash.jpg"
+                  alt="Healthcare technology AI visualization"
+                  className="w-11/12 h-11/12 object-contain rounded-lg"
+                />
+            </div>
         </div>
       </Card>
 

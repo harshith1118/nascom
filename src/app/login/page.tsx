@@ -30,10 +30,8 @@ export default function LoginPage() {
         description: 'Welcome back!',
       });
 
-      // Wait for the user context to update with user data from Firestore
-      // This is important to ensure the AppLayout recognizes the user as authenticated
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait longer to ensure user context updates
-
+      // The UserContext will automatically detect the auth state change
+      // and update accordingly, so we can immediately redirect
       router.push('/dashboard');
     } catch (error: any) {
       console.error('Login error:', error);
@@ -48,7 +46,7 @@ export default function LoginPage() {
           description: errorMessage,
         });
         // Redirect to signup after a short delay
-        setTimeout(() => {
+        const redirectTimer = setTimeout(() => {
           router.push('/signup');
         }, 2000);
         return;

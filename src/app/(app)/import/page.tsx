@@ -61,8 +61,6 @@ export default function ImportPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    // Simulate a small delay for parsing
-    await new Promise(resolve => setTimeout(resolve, 500));
     try {
       const parsedTestCases = parseTestCasesMarkdown(values.testCases);
       if (parsedTestCases.length === 0) {
